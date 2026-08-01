@@ -60,17 +60,6 @@ const SearchBar = ({
     setQuery(e.target.value);
   };
 
-  // Prevent background scroll when modal/drawer is open (mobile)
-  useEffect(() => {
-    if (open && isMobile) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open, isMobile]);
 
   // Global shortcut Cmd+K / Ctrl+K to open search
   useEffect(() => {

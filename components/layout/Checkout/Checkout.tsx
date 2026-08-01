@@ -20,15 +20,19 @@ import Container from "@/components/Container";
 import SavedAddress from "./address/saved-address";
 import AddressForm from "./address/address-form";
 import QrPayment from "./QrPayment";
+import CheckoutConfirmModal from "./CheckoutConfirmModal";
 import {
   getAddresses,
   saveAddress as persistAddress,
+  deleteAddress,
 } from "@/lib/addressService";
 import { useCart } from "@/hooks/useCart";
 import { CartProduct, getCartProducts } from "@/utils/cartHelper";
-import { placeOrder, type PaymentMethod } from "@/lib/orderService";
+import { placeOrder, calculateShippingCharge, type PaymentMethod } from "@/lib/orderService";
 import Image from "next/image";
 import { getSafeImageSrc } from "@/lib/image";
+import { storage } from "@/config/firebase.config";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 interface SavedAddressData {
   id: string;
@@ -53,6 +57,7 @@ export default function Checkout() {
   const [savedAddresses, setSavedAddresses] = useState<SavedAddressData[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -99,17 +104,6 @@ export default function Checkout() {
     loadAddresses();
   }, [user?.id]);
 
-  const subtotal = cartProducts.reduce((total, item) => {
-    const discountedPrice = item.price - item.discount;
-    return total + discountedPrice * item.quantity;
-  }, 0);
-
-  const shipping = 100;
-  const discount = cartProducts.reduce((total, item) => {
-    return total + item.discount * item.quantity;
-  }, 0);
-  const total = subtotal + shipping;
-
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
     null,
@@ -131,6 +125,19 @@ export default function Checkout() {
     zipCode: "",
     saveAddress: false,
   });
+
+  const subtotal = cartProducts.reduce((total, item) => {
+    const discountedPrice = item.price - item.discount;
+    return total + discountedPrice * item.quantity;
+  }, 0);
+
+  const shipping = formData.district ? calculateShippingCharge(formData.district) : 0;
+  
+  const discount = cartProducts.reduce((total, item) => {
+    return total + item.discount * item.quantity;
+  }, 0);
+  
+  const total = subtotal + shipping;
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -182,6 +189,50 @@ export default function Checkout() {
     setFormErrors({});
   };
 
+  const handleDeleteAddress = async (addressId: string) => {
+    if (!user?.id) return;
+    try {
+      await deleteAddress(user.id, addressId);
+      
+      const addresses = await getAddresses(user.id);
+      setSavedAddresses(
+        addresses.map((address, index) => ({
+          id: address.id ?? `saved-${index}`,
+          label: address.isDefault
+            ? "Default address"
+            : `Saved address ${index + 1}`,
+          fullName: address.fullName,
+          phone: address.phone,
+          email: address.email,
+          address: address.address,
+          city: address.city,
+          province: address.province,
+          district: address.district,
+          zipCode: address.zipCode,
+        })),
+      );
+
+      if (selectedAddressId === addressId) {
+        setSelectedAddressId(null);
+        setFormData({
+          fullName: "",
+          phone: "",
+          email: "",
+          address: "",
+          province: "",
+          city: "",
+          district: "",
+          zipCode: "",
+          saveAddress: false,
+        });
+      }
+      
+      toast.success("Address deleted successfully.");
+    } catch (error) {
+      console.error("Failed to delete address:", error);
+      toast.error("Failed to delete address.");
+    }
+  };
   const validateAddressForm = () => {
     const errors: Record<string, string> = {};
     if (!formData.fullName.trim()) errors.fullName = "Full name is required";
@@ -269,17 +320,35 @@ export default function Checkout() {
     return errors;
   };
 
-  const handleConfirmOrder = async () => {
+  const handleConfirmOrder = () => {
     const errors = validateCheckout();
     if (Object.keys(errors).length === 0) {
-      setIsSubmitting(true);
+      setFormErrors({});
+      setShowConfirmDialog(true);
+    } else {
+      setFormErrors(errors);
+      console.log("[v0] Validation errors:", errors);
+    }
+  };
+
+  const processOrder = async () => {
+    setShowConfirmDialog(false);
+    setIsSubmitting(true);
       try {
+        let screenshotUrl = "";
+        if (paymentMethod === "qr" && paymentScreenshot) {
+          const path = `payment-screenshots/${Date.now()}-${paymentScreenshot.name}`;
+          const storageRef = ref(storage, path);
+          await uploadBytes(storageRef, paymentScreenshot);
+          screenshotUrl = await getDownloadURL(storageRef);
+        }
+
         const orderId = await placeOrder({
           userId: user?.id ?? `guest-${Date.now()}`,
           paymentMethod,
           transactionId: paymentMethod === "qr" ? transactionId.trim() : undefined,
           paymentScreenshot:
-            paymentMethod === "qr" ? paymentScreenshot?.name : undefined,
+            paymentMethod === "qr" ? screenshotUrl : undefined,
           shippingAddress: {
             fullName: formData.fullName.trim(),
             phone: formData.phone.trim(),
@@ -326,10 +395,6 @@ export default function Checkout() {
       } finally {
         setIsSubmitting(false);
       }
-    } else {
-      setFormErrors(errors);
-      console.log("[v0] Validation errors:", errors);
-    }
   };
 
   if (placedOrderId) {
@@ -425,6 +490,7 @@ export default function Checkout() {
                       mockSavedAddresses={savedAddresses}
                       handleSelectAddress={handleSelectAddress}
                       handleAddNewAddress={handleAddNewAddress}
+                      handleDeleteAddress={handleDeleteAddress}
                       selectedAddressId={selectedAddressId}
                     />
                   )}
@@ -670,6 +736,21 @@ export default function Checkout() {
           </div>
         </div>
       </div>
+
+      <CheckoutConfirmModal
+        isOpen={showConfirmDialog}
+        onClose={() => setShowConfirmDialog(false)}
+        onConfirm={processOrder}
+        isSubmitting={isSubmitting}
+        orderTotal={total}
+        paymentMethod={paymentMethod}
+        shippingAddress={{
+          fullName: formData.fullName,
+          address: formData.address,
+          city: formData.city,
+          district: formData.district,
+        }}
+      />
     </Container>
   );
 }

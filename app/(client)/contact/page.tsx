@@ -5,7 +5,7 @@ import { Phone, Mail, MapPin, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const WHATSAPP_NUMBER = "9779806309738"; // E.164 without leading +
+const WHATSAPP_NUMBER = "9779840320862"; // E.164 without leading +
 
 const WhatsAppIcon = () => (
   <svg
@@ -143,10 +143,10 @@ export default function ContactSection() {
             <div className="bg-surface rounded-2xl p-8 border border-border shadow-sm flex flex-col gap-8">
               <ContactItem icon={<Phone className="w-5 h-5" />} label="Phone & WhatsApp">
                 <a
-                  href="tel:+9779806309738"
+                  href="tel:+9779840320862"
                   className="hover:text-accent transition-colors"
                 >
-                  +977 9806309738
+                  +977 9840320862
                 </a>
               </ContactItem>
               

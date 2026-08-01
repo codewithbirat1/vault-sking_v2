@@ -13,10 +13,10 @@ export const quickLinksData = [
   { title: "Help", href: "/contact" },
 ];
 export const categoriesData = [
-  { title: "Cleansers", href: "cleansers" },
+  { title: "Facewash", href: "facewash" },
   { title: "Moisturizers", href: "moisturizers" },
   { title: "Serums", href: "serums" },
-  { title: "Sunscreens", href: "sunscreens" },
+  { title: "Sunscreens", href: "sunscreen" },
   { title: "Face Masks", href: "face-masks" },
   { title: "Toners", href: "toners" },
   { title: "Eye Care", href: "eye-care" },

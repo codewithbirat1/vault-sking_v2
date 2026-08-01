@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -44,19 +44,24 @@ const DistrictCombobox = ({
 
   return (
     <Popover  open={open} onOpenChange={setOpen}>
-      <PopoverTrigger >
-        <Button
-          id={id}
-          type="button"
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between font-normal "
-        >
-          {selectedDistrict ? selectedDistrict.label : "Select district"}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
+      <PopoverTrigger
+        render={(props) => (
+          <button
+            {...props}
+            id={id}
+            type="button"
+            role="combobox"
+            aria-expanded={open}
+            className={cn(
+              buttonVariants({ variant: "outline" }),
+              "w-full justify-between font-normal"
+            )}
+          >
+            {selectedDistrict ? selectedDistrict.label : "Select district"}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </button>
+        )}
+      />
       <PopoverContent
         className="w-[--radix-popover-trigger-width] p-0 bg-white"
         align="start"

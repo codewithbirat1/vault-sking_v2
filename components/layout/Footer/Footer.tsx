@@ -98,7 +98,7 @@ const Footer = () => {
         <div className=" flex flex-row justify-between items-center py-5 text-lg border-t border-accent/90 text-center text-sm text-primary">
           <div className="flex flex-col items-center gap-2">
             <p>
-              © {new Date().getFullYear()} Vault Enterprises. All rights
+              © {new Date().getFullYear()} Vault Enterprises Pvt. Ltd. All rights
               reserved.
             </p>
           </div>

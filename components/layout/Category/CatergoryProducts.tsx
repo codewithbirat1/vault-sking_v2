@@ -8,8 +8,7 @@ import NoProductFound from "@/components/layout/Products/NoProductFound";
 import ProductCard from "@/components/layout/Products/ProductCard";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/config/firebase.config";
-import type { Category } from "@/data/products";
-import type { Product } from "@/data/products";
+import type { Category, Product } from "@/data/products";
 
 interface Props {
   categories: Category[];
@@ -21,9 +20,17 @@ const CategoryProducts = ({ categories, slug }: Props) => {
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const router = useRouter();
 
+  const normalizedSlug = useMemo(() => {
+    const mapping: Record<string, string> = {
+      sunscreens: "sunscreen",
+      cleansers: "facewash",
+    };
+    return mapping[slug.toLowerCase()] || slug;
+  }, [slug]);
+
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      query(collection(db, "categories"), where("slug.current", "==", slug)),
+      query(collection(db, "categories"), where("slug.current", "==", normalizedSlug)),
       (snapshot) => {
         const matchedCategory = snapshot.docs[0];
         setCategoryId(matchedCategory?.id ?? null);
@@ -34,7 +41,7 @@ const CategoryProducts = ({ categories, slug }: Props) => {
     );
 
     return unsubscribe;
-  }, [slug]);
+  }, [normalizedSlug]);
 
   const filteredProducts = useMemo(() => {
     if (!categoryId) return [];
@@ -91,7 +98,7 @@ const CategoryProducts = ({ categories, slug }: Props) => {
 
       <div className="flex-1">
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
             <AnimatePresence>
               {filteredProducts.map((p) => (
                 <m.div key={p._id} layout>

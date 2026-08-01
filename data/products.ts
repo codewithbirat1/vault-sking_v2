@@ -1,5 +1,5 @@
 import { db } from "@/config/firebase.config";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 
 export type ProductImage = {
   src?: string;
@@ -256,8 +256,8 @@ export type OrderItem = {
 const categories: Category[] = [
   {
     _id: "cat-1",
-    title: "Cleansers",
-    slug: { current: "cleansers" },
+    title: "Facewash",
+    slug: { current: "facewash" },
     description: "Gentle daily essentials",
     image:
       "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80",
@@ -284,7 +284,7 @@ const categories: Category[] = [
   {
     _id: "cat-4",
     title: "Sunscreens",
-    slug: { current: "sunscreens" },
+    slug: { current: "sunscreen" },
     description: "Everyday daily protection",
     image:
       "https://images.unsplash.com/photo-1612817288484-6f916006741a?auto=format&fit=crop&w=800&q=80",
@@ -418,7 +418,15 @@ export async function getBlogCategories(): Promise<Array<{ title: string }>> {
   return Array.from(titles).map((title) => ({ title }));
 }
 
-export function getActiveAnnouncement(): Announcement {
+export async function getActiveAnnouncement(): Promise<Announcement> {
+  try {
+    const snap = await getDoc(doc(db, "announcements", "active"));
+    if (snap.exists()) {
+      return snap.data() as Announcement;
+    }
+  } catch {
+    // fall through to default
+  }
   return announcement;
 }
 

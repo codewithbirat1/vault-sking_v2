@@ -4,6 +4,7 @@ import Image from "next/image";
 import { m } from "framer-motion";
 import { SearchResult } from "@/types/search";
 import { getSafeImageSrc, PLACEHOLDER_IMAGE } from "@/lib/image";
+import HighlightedText from "./HighlightedText";
 
 type Props = {
   result: SearchResult;
@@ -12,6 +13,10 @@ type Props = {
 };
 
 export default function SearchResultCard({ result, onSelect, isHighlighted }: Props) {
+  const nameMatches = result.matches?.find((m) => m.key === "name")?.indices;
+  const brandMatches = result.matches?.find((m) => m.key === "brand")?.indices;
+  const categoryMatches = result.matches?.find((m) => m.key === "category")?.indices;
+
   return (
     <m.button
       onClick={onSelect}
@@ -41,17 +46,20 @@ export default function SearchResultCard({ result, onSelect, isHighlighted }: Pr
       {/* Info */}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-900 truncate leading-tight">
-          {result.name}
+          <HighlightedText text={result.name} indices={nameMatches} />
         </p>
         <p className="text-xs text-gray-500 mt-0.5 truncate">
-          {result.brand}
-          {result.category && result.category !== result.brand
-            ? ` · ${result.category}`
-            : ""}
+          <HighlightedText text={result.brand} indices={brandMatches} />
+          {result.category && result.category !== result.brand ? (
+            <>
+              {" · "}
+              <HighlightedText text={result.category} indices={categoryMatches} />
+            </>
+          ) : ""}
         </p>
         <div className="flex items-center gap-2 mt-1">
           <span className="text-xs font-semibold text-primary">
-            {result.price}
+            NPR {result.price}
           </span>
           {result.status && (
             <span

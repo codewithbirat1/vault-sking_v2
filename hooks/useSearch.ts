@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import debounce from "lodash.debounce";
-import { SearchResult, rankResults } from "@/types/search";
+import { SearchResult } from "@/types/search";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/config/firebase.config";
 import { Product } from "@/data/products";
 import { getSafeImageSrc } from "@/lib/image";
+import Fuse from "fuse.js";
 
 export function useSearch(query: string) {
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -32,6 +33,37 @@ export function useSearch(query: string) {
     return unsubscribe;
   }, []);
 
+  const fuse = useMemo(() => {
+    const searchData = allProducts.map((p) => ({
+      id: p._id,
+      name: p.name,
+      slug: p.slug.current,
+      price: p.price.toString(),
+      imageUrl: getSafeImageSrc(p.images?.[0]?.src || p.images?.[0]?.url || p.thumbnail),
+      category: p.category,
+      brand: p.brand,
+      variant: p.variant || "",
+      status: p.status || null,
+      rating: p.ratings,
+      tags: p.tags || [],
+    }));
+
+    return new Fuse(searchData, {
+      keys: [
+        { name: "name", weight: 0.5 },
+        { name: "slug", weight: 0.1 },
+        { name: "category", weight: 0.15 },
+        { name: "brand", weight: 0.15 },
+        { name: "tags", weight: 0.1 },
+      ],
+      threshold: 0.35,
+      ignoreLocation: true,
+      includeScore: true,
+      includeMatches: true,
+      minMatchCharLength: 2,
+    });
+  }, [allProducts]);
+
   const fetchResults = useCallback((searchTerm: string) => {
     if (!searchTerm || searchTerm.trim().length === 0) {
       setResults([]);
@@ -45,21 +77,11 @@ export function useSearch(query: string) {
     setError(null);
 
     try {
-      // Map local products to SearchResult format
-      const searchData: SearchResult[] = allProducts.map((p) => ({
-        id: p._id,
-        name: p.name,
-        slug: p.slug.current,
-        price: p.price.toString(),
-        imageUrl: getSafeImageSrc(p.images?.[0]?.src || p.images?.[0]?.url || p.thumbnail),
-        category: p.category,
-        brand: p.brand,
-        variant: p.variant || "",
-        status: p.status || null,
-        rating: p.ratings,
+      const fuseResults = fuse.search(searchTerm);
+      const ranked: SearchResult[] = fuseResults.map((res) => ({
+        ...res.item,
+        matches: res.matches as any,
       }));
-
-      const ranked = rankResults(searchTerm, searchData);
       setResults(ranked);
       setHighlightedIndex(-1);
     } catch (e: unknown) {
@@ -70,13 +92,13 @@ export function useSearch(query: string) {
     } finally {
       setLoading(false);
     }
-  }, [allProducts]);
+  }, [fuse]);
 
   const debouncedFetch = useMemo(
     () =>
       debounce((searchTerm: string) => {
         fetchResults(searchTerm);
-      }, 300),
+      }, 150),
     [fetchResults],
   );
 
@@ -85,6 +107,7 @@ export function useSearch(query: string) {
       debouncedFetch.cancel();
     };
   }, [debouncedFetch]);
+
   const onArrowDown = () => {
     setHighlightedIndex((prev) => {
       const next = prev + 1;
@@ -121,5 +144,6 @@ export function useSearch(query: string) {
     onArrowDown,
     onArrowUp,
     onEnter,
+    allProducts, // Expose allProducts for suggestions or similar products
   };
 }

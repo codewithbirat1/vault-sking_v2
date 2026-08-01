@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { RadioGroupItem } from "@/components/ui/radio-group";
-import { Plus } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Plus, Trash2 } from "lucide-react";
 
 interface SavedAddress {
   id: string;
@@ -19,17 +19,26 @@ const SavedAddress = ({
   mockSavedAddresses,
   handleSelectAddress,
   handleAddNewAddress,
+  handleDeleteAddress,
   selectedAddressId,
 }: {
   mockSavedAddresses: SavedAddress[];
   handleSelectAddress: (addr: SavedAddress) => void;
   handleAddNewAddress: () => void;
+  handleDeleteAddress: (id: string) => void;
   selectedAddressId: string | null;
 }) => {
   return (
     <div className="space-y-3">
       <p className="text-sm font-medium">Saved Addresses</p>
-      <div className="space-y-2">
+      <RadioGroup
+        value={selectedAddressId ?? ""}
+        onValueChange={(val) => {
+          const addr = mockSavedAddresses.find((a) => a.id === val);
+          if (addr) handleSelectAddress(addr);
+        }}
+        className="space-y-2"
+      >
         {mockSavedAddresses.map((addr) => (
           <div
             key={addr.id}
@@ -61,10 +70,23 @@ const SavedAddress = ({
                   {addr.zipCode}
                 </p>
               </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation(); // prevent selecting the address
+                  handleDeleteAddress(addr.id);
+                }}
+                className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 transition-colors"
+                title="Delete address"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         ))}
-      </div>
+      </RadioGroup>
       <Button
         type="button"
         variant="outline"

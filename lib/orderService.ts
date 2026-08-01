@@ -127,6 +127,12 @@ const cancelableOrderStatuses: CustomerOrderStatus[] = [
   "processing",
 ];
 
+export const calculateShippingCharge = (district?: string): number => {
+  if (!district) return 0;
+  const normalizedDistrict = district.trim().toLowerCase();
+  return normalizedDistrict === "kathmandu" ? 100 : 200;
+};
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
@@ -371,7 +377,7 @@ export const placeOrder = async ({
       discount += item.discount * item.quantity;
     }
 
-    const shipping = 100;
+    const shipping = calculateShippingCharge(shippingAddress.district);
 
     const total = subtotal - discount + shipping;
     const orderRef = doc(collection(db, "orders"));

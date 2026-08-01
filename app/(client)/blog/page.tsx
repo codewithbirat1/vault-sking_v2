@@ -22,7 +22,7 @@ const BlogPage = async () => {
       <Container>
         <Title className="py-4">Latest Blogs</Title>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-2 py:md-5 justify-items-center">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 py-2 md:py-5">
           {blogs?.map((blog) => (
             <div
               key={blog?._id}
@@ -35,7 +35,7 @@ const BlogPage = async () => {
                     alt="blogImage"
                     width={500}
                     height={500}
-                    className="w-full h-44 object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-54 object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
               )}
@@ -46,15 +46,15 @@ const BlogPage = async () => {
                     {blog?.blogcategories?.map((item, index) => (
                       <p
                         key={index}
-                        className="font-semibold text-shop_dark_green tracking-wide text-[11px]"
+                        className="font-semibold text-primary tracking-wide text-[16px]"
                       >
                         {item?.title}
                       </p>
                     ))}
-                    <span className="absolute left-0 -bottom-1 bg-lightColor/30 w-full h-[2px] group-hover:bg-shop_dark_green transition-all" />
+                    <span className="absolute left-0 -bottom-1 bg-surface/30 w-full h-[2px] group-hover:bg-primary transition-all" />
                   </div>
 
-                  <p className="flex items-center gap-1 text-lightColor text-[11px] hover:text-shop_dark_green transition-colors cursor-pointer">
+                  <p className="flex items-center gap-1 text-surface text-[11px] hover:text-primary transition-colors cursor-pointer">
                     <Calendar size={13} />
                     {dayjs(blog.publishedAt).format("MMM D, YYYY")}
                   </p>
@@ -62,7 +62,7 @@ const BlogPage = async () => {
 
                 <Link
                   href={`/blog/${blog?.slug?.current}`}
-                  className="block text-sm font-semibold mt-2 line-clamp-2 hover:text-shop_dark_green transition-colors"
+                  className="block text-sm font-semibold mt-2 line-clamp-2 hover:text-primary transition-colors"
                 >
                   {blog?.title}
                 </Link>

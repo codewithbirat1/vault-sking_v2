@@ -9,12 +9,12 @@ const hardcodedPromo = {
 } as const;
 
 const contacts = [
-  { type: "email", label: "mail@vaultenterprises.com.np", href: "mailto:mail@vaultenterprises.com.np", Icon: Mail },
-  { type: "phone", label: "+977 9749484142", href: "tel:+9779749484142", Icon: Phone },
+  { type: "email", label: "info@vaultskin.co", href: "mailto:info@vaultskin.co", Icon: Mail },
+  { type: "phone", label: "+977 9840320862", href: "tel:+9779840320862", Icon: Phone },
 ] as const;
 
-const Header = () => {
-  const announcement = getActiveAnnouncement();
+const Header = async () => {
+  const announcement = await getActiveAnnouncement();
 
   return (
     <header className="bg-primary text-white">

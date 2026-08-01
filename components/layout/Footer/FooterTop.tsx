@@ -10,14 +10,14 @@ interface ContactItemData {
 const data: ContactItemData[] = [
   {
     title: "Visit Us",
-    subtitle: "Kathamndu, Nepal",
-    icon: (
+    subtitle: "NBTC, Kathmandu, Nepal",
+     icon: (
       <MapPin className="h-6 w-6 text-primary group-hover:text-accent transition-colors" />
     ),
   },
   {
     title: "Call Us",
-    subtitle: "+977 123456789",
+    subtitle: "+977 9840320862",
     icon: (
       <Phone className="h-6 w-6 text-primary group-hover:text-accent transition-colors" />
     ),
