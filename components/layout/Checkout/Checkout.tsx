@@ -343,8 +343,12 @@ export default function Checkout() {
           screenshotUrl = await getDownloadURL(storageRef);
         }
 
+        if (!user?.id) {
+          throw new Error("You must be logged in to place an order.");
+        }
+
         const orderId = await placeOrder({
-          userId: user?.id ?? `guest-${Date.now()}`,
+          userId: user.id,
           paymentMethod,
           transactionId: paymentMethod === "qr" ? transactionId.trim() : undefined,
           paymentScreenshot:

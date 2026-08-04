@@ -39,6 +39,9 @@ export const getGuestCart = (): CartItem[] => {
  */
 export const saveGuestCart = (cart: CartItem[]) => {
   localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("guest_cart_updated"));
+  }
 };
 
 /**
@@ -118,6 +121,9 @@ export const decreaseGuestQuantity = (productId: string) => {
 export const clearGuestCart = () => {
   localStorage.removeItem(CART_KEY);
   localStorage.removeItem("guest_cart");
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("guest_cart_updated"));
+  }
 };
 
 /**

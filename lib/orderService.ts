@@ -244,6 +244,10 @@ export const canCustomerCancelOrder = (status: CustomerOrderStatus) =>
 export const getCustomerOrders = async (
   userId: string,
 ): Promise<CustomerOrder[]> => {
+  if (!userId || userId.startsWith("guest-")) {
+    throw new Error("Invalid user ID.");
+  }
+
   const ordersSnapshot = await getDocs(
     query(collection(db, "orders"), where("userId", "==", userId)),
   );
@@ -261,6 +265,10 @@ export const getCustomerOrder = async (
   orderId: string,
   userId: string,
 ): Promise<CustomerOrder | null> => {
+  if (!userId || userId.startsWith("guest-")) {
+    throw new Error("Invalid user ID.");
+  }
+
   const orderSnapshot = await getDoc(doc(db, "orders", orderId));
 
   if (!orderSnapshot.exists()) return null;
@@ -273,8 +281,12 @@ export const getCustomerOrder = async (
 export const cancelCustomerOrder = async (
   orderId: string,
   userId: string,
-): Promise<CustomerOrder> =>
-  runTransaction(db, async (transaction) => {
+): Promise<CustomerOrder> => {
+  if (!userId || userId.startsWith("guest-")) {
+    throw new Error("Invalid user ID.");
+  }
+
+  return runTransaction(db, async (transaction) => {
     const orderRef = doc(db, "orders", orderId);
     const orderSnapshot = await transaction.get(orderRef);
 
@@ -317,6 +329,7 @@ export const cancelCustomerOrder = async (
       timeline,
     };
   });
+};
 
 const generateOrderNumber = () => {
   const now = new Date();
@@ -337,6 +350,10 @@ export const placeOrder = async ({
   shippingAddress,
   items,
 }: PlaceOrderInput) => {
+  if (!userId || userId.startsWith("guest-")) {
+    throw new Error("You must be logged in to place an order.");
+  }
+
   if (items.length === 0) {
     throw new Error("Cart is empty.");
   }

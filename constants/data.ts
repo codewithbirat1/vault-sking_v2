@@ -19,7 +19,6 @@ export const categoriesData = [
   { title: "Sunscreens", href: "sunscreen" },
   { title: "Face Masks", href: "face-masks" },
   { title: "Toners", href: "toners" },
-  { title: "Eye Care", href: "eye-care" },
 ];
 
 export const productCategories = [

@@ -8,7 +8,6 @@ import { useUser } from "@clerk/nextjs";
 import {
   CheckCircle2,
   ChevronLeft,
-  ChevronRight,
   CircleAlert,
   Mail,
   MapPin,
@@ -18,7 +17,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Container from "@/components/Container";
-import OrdersAuthGate from "@/components/auth/OrdersAuthGate";
+
 import PriceFormatter from "@/components/layout/Products/PriceFormatter";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -87,8 +86,6 @@ const OrderDetailPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCancelling, setIsCancelling] = useState(false);
   const orderId = params.slug;
-  const redirectUrl = `/order/${encodeURIComponent(orderId)}`;
-
   useEffect(() => {
     if (!isLoaded) return;
 
@@ -149,7 +146,7 @@ const OrderDetailPage = () => {
   }
 
   if (!isSignedIn || !user?.id) {
-    return <OrdersAuthGate redirectUrl={redirectUrl} />;
+    return null;
   }
 
   if (isLoading) {

@@ -18,17 +18,17 @@ interface Props {
 export const socialLinks = [
   {
     title: "Facebook",
-    href: "https://facebook.com",
+    href: "https://https://www.facebook.com/vaultskinco",
     icon: FaFacebookF,
   },
   {
     title: "Instagram",
-    href: "https://instagram.com",
+    href: "https://www.instagram.com/vaultskin.co",
     icon: FaInstagram,
   },
   {
     title: "TikTok",
-    href: "https://tiktok.com",
+    href: "https://www.tiktok.com/@vaultskinco",
     icon: FaTiktok,
   },
 ];

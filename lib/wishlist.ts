@@ -65,6 +65,9 @@ export const getGuestWishlist = (): string[] => readWishlistIds();
  */
 export const saveGuestWishlist = (ids: string[]) => {
   localStorage.setItem(WISHLIST_KEY, JSON.stringify(ids));
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("guest_wishlist_updated"));
+  }
 };
 
 /**
@@ -112,6 +115,9 @@ export const toggleGuestWishlistItem = (productId: string): string[] => {
 export const clearGuestWishlist = () => {
   localStorage.removeItem(WISHLIST_KEY);
   localStorage.removeItem("guest_wishlist");
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("guest_wishlist_updated"));
+  }
 };
 
 /**

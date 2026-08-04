@@ -44,14 +44,19 @@ export const useCart = () => {
   /**
    * Listen to Firestore when user signs in
    */
- useEffect(() => {
-  if (!isSignedIn || !user) {
-    const timeoutId = window.setTimeout(() => {
-      setCart(getGuestCart());
-    }, 0);
+  useEffect(() => {
+    if (!isSignedIn || !user) {
+      const syncCart = () => setCart(getGuestCart());
+      window.addEventListener("guest_cart_updated", syncCart);
+      window.addEventListener("storage", syncCart);
+      
+      syncCart(); // initial sync
 
-    return () => clearTimeout(timeoutId);
-  }
+      return () => {
+        window.removeEventListener("guest_cart_updated", syncCart);
+        window.removeEventListener("storage", syncCart);
+      };
+    }
 
   let unsubscribe = () => {};
   let cancelled = false;

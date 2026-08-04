@@ -19,7 +19,7 @@ export const useOrders = () => {
       return;
     }
 
-    const unsubscribe = listenFirestoreOrders(user.id, (freshOrders) => {
+    const unsubscribe = listenFirestoreOrders(user.id, (freshOrders: CustomerOrder[]) => {
       setOrders(freshOrders);
     });
 

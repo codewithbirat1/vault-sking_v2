@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { ChevronRight, FileX, Package, ReceiptText } from "lucide-react";
 import Container from "@/components/Container";
-import OrdersAuthGate from "@/components/auth/OrdersAuthGate";
+
 import PriceFormatter from "@/components/layout/Products/PriceFormatter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -91,7 +91,7 @@ const OrdersPage = () => {
   }
 
   if (!isSignedIn || !user?.id) {
-    return <OrdersAuthGate redirectUrl="/order" />;
+    return null;
   }
 
   return (

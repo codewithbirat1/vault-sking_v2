@@ -155,12 +155,12 @@ export default function ContactSection() {
                   href="mailto:support@vault-enterprises.com"
                   className="hover:text-accent transition-colors break-all"
                 >
-                  support@vault-enterprises.com
+                  support@vaultskin.com
                 </a>
               </ContactItem>
 
               <ContactItem icon={<MapPin className="w-5 h-5" />} label="Headquarters">
-                <p>100 Premium Skincare Blvd<br />Suite 200, Los Angeles, CA 90001</p>
+                <p>NBTC, Kathmandu, Nepal</p>
               </ContactItem>
 
               <div className="pt-4 border-t border-border">
@@ -216,7 +216,7 @@ export default function ContactSection() {
                     id="phone"
                     name="phone"
                     type="tel"
-                    placeholder="+1 (555) 000-0000"
+                    placeholder="+977 9840320862"
                     value={formData.phone}
                     onChange={handleChange}
                     required

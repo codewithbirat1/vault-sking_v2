@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { useSearch } from "@/hooks/useSearch";
 import { getRecentSearches, saveRecentSearches } from "@/lib/localStorage";
 import SearchResultCard from "./SearchResultCard";
-import HighlightedText from "./HighlightedText";
 
 type SearchDrawerProps = {
   query: string;
@@ -30,7 +29,7 @@ export default function SearchDrawer({
   onSubmit,
   placeholder = "Search skincare, brands, categories...",
 }: SearchDrawerProps) {
-  const { results, loading, error, highlightedIndex, setHighlightedIndex, allProducts } = useSearch(query);
+  const { results, loading, error, highlightedIndex,  allProducts } = useSearch(query);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 

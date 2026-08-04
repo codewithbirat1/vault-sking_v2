@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Brand } from "@/data/products";
 import Title from "../Products/Title";
 import BrandCarousel from "./BrandCarousel";
-import { GitCompareArrows, Headset, } from "lucide-react";
+import { GitCompareArrows, Headset, ShieldCheck, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/config/firebase.config";
@@ -17,6 +17,16 @@ const extraData = [
     title: "Customer Support",
     description: "Friendly 24/7 customer support",
     icon: <Headset size={42} />,
+  },
+  {
+    title: "Secure Payment",
+    description: "100% safe & encrypted checkout",
+    icon: <ShieldCheck size={42} />, // or Shield
+  },
+  {
+    title: "Fast Delivery",
+    description: "Quick shipping across Nepal",
+    icon: <Truck size={42} />, // or PackageCheck
   },
 ];
 

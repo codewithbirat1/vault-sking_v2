@@ -33,13 +33,18 @@ export const useWishlist = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-  if (!isSignedIn || !user) {
-    const timeoutId = window.setTimeout(() => {
-      setWishlistIds(getGuestWishlist());
-    }, 0);
+    if (!isSignedIn || !user) {
+      const syncWishlist = () => setWishlistIds(getGuestWishlist());
+      window.addEventListener("guest_wishlist_updated", syncWishlist);
+      window.addEventListener("storage", syncWishlist);
+      
+      syncWishlist();
 
-    return () => window.clearTimeout(timeoutId);
-  }
+      return () => {
+        window.removeEventListener("guest_wishlist_updated", syncWishlist);
+        window.removeEventListener("storage", syncWishlist);
+      };
+    }
 
   let unsubscribe = () => {};
   let cancelled = false;
