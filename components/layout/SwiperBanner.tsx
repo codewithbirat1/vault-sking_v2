@@ -81,41 +81,49 @@ export default function SwiperBanner() {
     <section className="w-full cursor-pointer" aria-label="Featured promotions">
       <div className="block xl:hidden">
         <Swiper {...swiperConfig}>
-          {mobileBanners.map((banner, index) => (
-            <SwiperSlide key={banner.src}>
-              <Image
-                src={banner.src}
-                alt={banner.alt}
-                width={1080}
-                height={1350}
-                priority={index === 0}
-                fetchPriority={index === 0 ? "high" : "auto"}
-                loading={index === 0 ? undefined : "lazy"}
-                sizes="100vw"
-                className="h-[clamp(220px,55vw,480px)] w-full object-cover object-center"
-              />
-            </SwiperSlide>
-          ))}
+          {mobileBanners.map((banner, index) => {
+            const isPriority = index === 0 || banner.src.includes("2.svg");
+            return (
+              <SwiperSlide key={banner.src}>
+                <Image
+                  src={banner.src}
+                  alt={banner.alt}
+                  width={1080}
+                  height={1350}
+                  priority={isPriority}
+                  fetchPriority={isPriority ? "high" : "auto"}
+                  loading={isPriority ? "eager" : "lazy"}
+                  unoptimized={banner.src.includes(".svg")}
+                  sizes="100vw"
+                  className="h-[clamp(220px,55vw,480px)] w-full object-cover object-center"
+                />
+              </SwiperSlide>
+            );
+          })}
         </Swiper>
       </div>
 
       <div className="hidden xl:block">
         <Swiper {...swiperConfig}>
-          {desktopBanners.map((banner, index) => (
-            <SwiperSlide key={banner.src}>
-              <Image
-                src={banner.src}
-                alt={banner.alt}
-                width={1920}
-                height={680}
-                priority={index === 0}
-                fetchPriority={index === 0 ? "high" : "auto"}
-                loading={index === 0 ? undefined : "lazy"}
-                sizes="100vw"
-                className="h-[clamp(280px,50svh,680px)] w-full object-cover object-center"
-              />
-            </SwiperSlide>
-          ))}
+          {desktopBanners.map((banner, index) => {
+            const isPriority = index === 0 || banner.src.includes("2.svg");
+            return (
+              <SwiperSlide key={banner.src}>
+                <Image
+                  src={banner.src}
+                  alt={banner.alt}
+                  width={1920}
+                  height={680}
+                  priority={isPriority}
+                  fetchPriority={isPriority ? "high" : "auto"}
+                  loading={isPriority ? "eager" : "lazy"}
+                  unoptimized={banner.src.includes(".svg")}
+                  sizes="100vw"
+                  className="h-[clamp(280px,50svh,680px)] w-full object-cover object-center"
+                />
+              </SwiperSlide>
+            );
+          })}
         </Swiper>
       </div>
     </section>

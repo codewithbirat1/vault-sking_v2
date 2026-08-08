@@ -27,6 +27,8 @@ interface Props {
   }>;
 }
 
+import { getSafeImageSrc } from "@/lib/image";
+
 const getImageSrc = (image: unknown) => {
   if (!image || typeof image !== "object") return "";
 
@@ -41,7 +43,7 @@ const getImageSrc = (image: unknown) => {
     (value) => typeof value === "string" && value.trim().length > 0,
   );
 
-  return typeof firstValid === "string" ? firstValid.trim() : "";
+  return typeof firstValid === "string" ? getSafeImageSrc(firstValid.trim()) : "";
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

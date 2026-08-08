@@ -12,11 +12,14 @@ import { cn } from "@/lib/utils";
 import { CartProduct, getCartProducts } from "@/utils/cartHelper";
 import { ShoppingCart, Trash } from "lucide-react";
 import Image from "next/image";
-import { getSafeImageSrc } from "@/lib/image";
+import { getSafeImageSrc, isS3Url } from "@/lib/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+
+import { useUser } from "@clerk/nextjs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface OrderSummaryContentProps {
   cartProducts: CartProduct[];
@@ -61,18 +64,26 @@ const OrderSummaryContent = ({ cartProducts }: OrderSummaryContentProps) => {
 
 const CartPage = () => {
   const router = useRouter();
-
-  const { cart, removeFromCart, clearCart } = useCart();
+  const { isLoaded } = useUser();
+  const { cart, removeFromCart, clearCart, loading } = useCart();
   const [cartProducts, setCartProducts] = useState<CartProduct[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
 
   useEffect(() => {
+    let isCurrent = true;
     const load = async () => {
+      setLoadingProducts(true);
       const data = await getCartProducts(cart);
-
-      setCartProducts(data);
+      if (isCurrent) {
+        setCartProducts(data);
+        setLoadingProducts(false);
+      }
     };
 
     load();
+    return () => {
+      isCurrent = false;
+    };
   }, [cart]);
 
   const handleClearCart = async () => {
@@ -84,6 +95,26 @@ const CartPage = () => {
       toast.error("Failed to clear cart");
     }
   };
+
+  if (!isLoaded || loading || loadingProducts) {
+    return (
+      <div className="pb-20">
+        <Container>
+          <div className="flex items-center gap-2 py-5">
+            <ShoppingCart className="text-darkColor animate-pulse" />
+            <Skeleton className="h-8 w-48" />
+          </div>
+          <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-4">
+            <div className="space-y-4">
+              <Skeleton className="h-32 w-full rounded-2xl" />
+              <Skeleton className="h-32 w-full rounded-2xl" />
+            </div>
+            <Skeleton className="h-64 w-full rounded-2xl" />
+          </div>
+        </Container>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-20">
@@ -108,14 +139,20 @@ const CartPage = () => {
                           href={`/product/${product?.slug?.current}`}
                           className="self-start shrink-0 w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 border rounded-xl overflow-hidden group"
                         >
-                          <Image
-                            src={getSafeImageSrc(product.thumbnail)}
-                            alt={product?.name ?? "product image"}
-                            width={112}
-                            height={112}
-                            loading="lazy"
-                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          />
+                          {(() => {
+                            const imgUrl = getSafeImageSrc(product.thumbnail);
+                            return (
+                              <Image
+                                src={imgUrl}
+                                alt={product?.name ?? "product image"}
+                                width={112}
+                                height={112}
+                                loading="lazy"
+                                unoptimized={isS3Url(imgUrl)}
+                                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              />
+                            );
+                          })()}
                         </Link>
                       )}
 

@@ -8,7 +8,7 @@ import Link from "next/link";
 import type { Product } from "@/data/products";
 import toast from "react-hot-toast";
 import Image from "next/image";
-import { getSafeImageSrc } from "@/lib/image";
+import { getSafeImageSrc, isS3Url } from "@/lib/image";
 import PriceFormatter from "./PriceFormatter";
 import AddToCartButton from "./AddToCartButton";
 import { useWishlist } from "@/hooks/useWishlist";
@@ -101,20 +101,24 @@ const WishListProducts = () => {
                         size={18}
                         className="hover:text-red-600 hover:cursor-pointer hoverEffect"
                       />
-                      {product?.images && (
-                        <Link
-                          href={`/product/${product?.slug?.current}`}
-                          className="border rounded-md group hidden md:inline-flex"
-                        >
-                          <Image
-                            src={getSafeImageSrc(product?.images[0]?.url || product?.thumbnail)}
-                            alt={"product image"}
-                            width={80}
-                            height={80}
-                            className="rounded-md group-hover:scale-105 hoverEffect h-20 w-20 object-contain"
-                          />
-                        </Link>
-                      )}
+                      {product?.images && (() => {
+                        const imgUrl = getSafeImageSrc(product?.images[0]?.url || product?.thumbnail);
+                        return (
+                          <Link
+                            href={`/product/${product?.slug?.current}`}
+                            className="border rounded-md group hidden md:inline-flex"
+                          >
+                            <Image
+                              src={imgUrl}
+                              alt={"product image"}
+                              width={80}
+                              height={80}
+                              unoptimized={isS3Url(imgUrl)}
+                              className="rounded-md group-hover:scale-105 hoverEffect h-20 w-20 object-contain"
+                            />
+                          </Link>
+                        );
+                      })()}
                       <p className="line-clamp-1">{product?.name}</p>
                     </td>
                     <td className="p-2 capitalize hidden md:table-cell">

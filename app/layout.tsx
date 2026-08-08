@@ -12,7 +12,7 @@ const font = Plus_Jakarta_Sans({
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <html lang="en" className={font.variable}>
+    <html lang="en" className={font.variable} data-scroll-behavior="smooth">
       <body
         className="font-poppins antialiased"
         suppressHydrationWarning={true}

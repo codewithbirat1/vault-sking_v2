@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { m } from "framer-motion";
 import { SearchResult } from "@/types/search";
-import { getSafeImageSrc, PLACEHOLDER_IMAGE } from "@/lib/image";
+import { getSafeImageSrc, PLACEHOLDER_IMAGE, isS3Url } from "@/lib/image";
 import HighlightedText from "./HighlightedText";
 
 type Props = {
@@ -16,6 +16,7 @@ export default function SearchResultCard({ result, onSelect, isHighlighted }: Pr
   const nameMatches = result.matches?.find((m) => m.key === "name")?.indices;
   const brandMatches = result.matches?.find((m) => m.key === "brand")?.indices;
   const categoryMatches = result.matches?.find((m) => m.key === "category")?.indices;
+  const imageUrl = getSafeImageSrc(result.imageUrl);
 
   return (
     <m.button
@@ -31,10 +32,11 @@ export default function SearchResultCard({ result, onSelect, isHighlighted }: Pr
       {/* Product thumbnail */}
       <div className="flex-shrink-0 w-14 h-14 relative rounded-lg overflow-hidden bg-gray-100">
         <Image
-          src={getSafeImageSrc(result.imageUrl)}
+          src={imageUrl}
           alt={result.name}
           fill
           sizes="56px"
+          unoptimized={isS3Url(imageUrl)}
           style={{ objectFit: "cover" }}
           className="rounded-lg"
           onError={(e) => {

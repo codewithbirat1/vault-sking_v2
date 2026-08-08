@@ -30,7 +30,7 @@ import { useCart } from "@/hooks/useCart";
 import { CartProduct, getCartProducts } from "@/utils/cartHelper";
 import { placeOrder, calculateShippingCharge, type PaymentMethod } from "@/lib/orderService";
 import Image from "next/image";
-import { getSafeImageSrc } from "@/lib/image";
+import { getSafeImageSrc, isS3Url } from "@/lib/image";
 import { storage } from "@/config/firebase.config";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -670,13 +670,19 @@ export default function Checkout() {
                       >
                         <div>
                           <div className="w-10 h-10 bg-background rounded-lg flex items-center justify-center overflow-hidden">
-                            <Image
-                              src={getSafeImageSrc(item.thumbnail)}
-                              alt={item.name}
-                              width={100}
-                              height={100}
-                              className="w-full h-full object-cover"
-                            />
+                            {(() => {
+                              const imgUrl = getSafeImageSrc(item.thumbnail);
+                              return (
+                                <Image
+                                  src={imgUrl}
+                                  alt={item.name}
+                                  width={100}
+                                  height={100}
+                                  unoptimized={isS3Url(imgUrl)}
+                                  className="w-full h-full object-cover"
+                                />
+                              );
+                            })()}
                           </div>
                         </div>
                         <div className="flex-1 min-w-0">

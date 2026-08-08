@@ -317,6 +317,20 @@ export const cancelCustomerOrder = async (
     };
     const timeline = [...order.timeline, cancellationEntry];
 
+    // Restore stock for all items in the order
+    for (const item of order.items) {
+      const productRef = doc(db, "products", item.productId);
+      const productSnapshot = await transaction.get(productRef);
+      if (productSnapshot.exists()) {
+        const productData = productSnapshot.data();
+        const currentStock = typeof productData.stock === "number" ? productData.stock : 0;
+        transaction.update(productRef, {
+          stock: currentStock + item.quantity,
+          updatedAt: serverTimestamp(),
+        });
+      }
+    }
+
     transaction.update(orderRef, {
       status: "cancelled",
       timeline,

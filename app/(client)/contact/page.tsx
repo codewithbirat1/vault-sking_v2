@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Phone, Mail, MapPin, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import SocialMedia from "@/components/layout/Footer/SocialMedia";
 
 const WHATSAPP_NUMBER = "9779840320862"; // E.164 without leading +
 
@@ -79,11 +80,7 @@ const ContactItem = ({ icon, label, children }: ContactItemProps) => (
   </div>
 );
 
-const socialLinks = [
-  { icon: <FacebookIcon />, label: "Facebook", href: "#" },
-  { icon: <InstagramIcon />, label: "Instagram", href: "#" },
-  { icon: <TikTokIcon />, label: "TikTok", href: "#" },
-];
+
 
 export default function ContactSection() {
   const [formData, setFormData] = useState({
@@ -168,16 +165,7 @@ export default function ContactSection() {
                   Follow Us
                 </p>
                 <div className="flex items-center gap-3">
-                  {socialLinks.map(({ icon, label, href }) => (
-                    <a
-                      key={label}
-                      href={href}
-                      aria-label={label}
-                      className="w-10 h-10 rounded-xl border border-border bg-bg flex items-center justify-center text-text-muted hover:border-accent hover:text-accent hover:bg-accent/5 transition-all duration-200"
-                    >
-                      {icon}
-                    </a>
-                  ))}
+                  <SocialMedia />
                 </div>
               </div>
             </div>

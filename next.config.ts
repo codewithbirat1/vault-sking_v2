@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "*.amazonaws.com",
+        hostname: "vault-skin.s3.us-east-1.amazonaws.com",
       },
       {
         protocol: "https",

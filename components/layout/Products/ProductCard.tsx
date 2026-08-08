@@ -1,6 +1,6 @@
 import type { Product } from "@/data/products";
 import Image from "next/image";
-import { getSafeImageSrc } from "@/lib/image";
+import { getSafeImageSrc, isS3Url } from "@/lib/image";
 import React from "react";
 import Link from "next/link";
 import PriceView from "./PriceView";
@@ -27,6 +27,7 @@ const ProductCard = ({
   // Only the first row (roughly) should be eagerly loaded/preloaded.
   // Everything below the fold should lazy-load instead.
   const isAboveFold = index < 4;
+  const imageSrc = getSafeImageSrc(product.images[0]?.url || product.thumbnail);
   return (
     <div
       className={`text-sm group flex flex-col`}
@@ -38,11 +39,12 @@ const ProductCard = ({
             className=" relative w-full h-full block"
           >
             <Image
-              src={getSafeImageSrc(product.images[0]?.url || product.thumbnail)}
+              src={imageSrc}
               alt={product?.name || "Product Image"}
               fill
               priority={isAboveFold}
               loading={isAboveFold ? undefined : "lazy"}
+              unoptimized={isS3Url(imageSrc)}
               sizes={
                 isCompact
                   ? "(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"

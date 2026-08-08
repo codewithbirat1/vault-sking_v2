@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { m } from "framer-motion";
 import { ArrowRight, Tag } from "lucide-react";
 import { SearchResult } from "@/types/search";
-import { getSafeImageSrc, PLACEHOLDER_IMAGE } from "@/lib/image";
+import { getSafeImageSrc, PLACEHOLDER_IMAGE, isS3Url } from "@/lib/image";
 
 type Props = {
   result: SearchResult;
@@ -23,6 +23,8 @@ export default function SearchPreview({ result, onView }: Props) {
     }
   };
 
+  const imageUrl = getSafeImageSrc(result.imageUrl);
+
   return (
     <m.div
       key={result.id}
@@ -34,10 +36,11 @@ export default function SearchPreview({ result, onView }: Props) {
       {/* Image */}
       <div className="relative w-48 h-48 mb-4 rounded-2xl overflow-hidden bg-gray-100 shadow-sm">
         <Image
-          src={getSafeImageSrc(result.imageUrl)}
+          src={imageUrl}
           alt={result.name}
           fill
           sizes="192px"
+          unoptimized={isS3Url(imageUrl)}
           style={{ objectFit: "cover" }}
           className="rounded-2xl"
           onError={(e) => {
