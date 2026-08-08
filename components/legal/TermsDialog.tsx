@@ -6,7 +6,7 @@ import {
   DialogContent,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { FileCheck } from "lucide-react";
+import { FileCheck, X } from "lucide-react";
 import { termsData } from "@/data/termsData";
 import { LegalHeader } from "./LegalHeader";
 import { LegalSection } from "./LegalSection";
@@ -38,6 +38,14 @@ export function TermsDialog({ children, open, onOpenChange }: TermsDialogProps) 
         showCloseButton={false}
         className="max-w-5xl h-[85vh] p-0 gap-0 overflow-hidden flex flex-col bg-bg border-border rounded-2xl shadow-xl sm:rounded-2xl"
       >
+        <button
+          onClick={() => handleOpenChange(false)}
+          className="absolute top-4 right-4 z-50 p-1.5 rounded-full bg-surface hover:bg-muted text-muted-foreground hover:text-text transition-colors cursor-pointer"
+          aria-label="Close"
+        >
+          <X className="size-5" />
+        </button>
+
         <LegalHeader
           icon={FileCheck}
           title="Terms & Conditions"
