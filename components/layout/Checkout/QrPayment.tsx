@@ -1,13 +1,14 @@
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Copy, QrCode, Upload } from "lucide-react";
+import { Copy, Upload } from "lucide-react";
 import toast from "react-hot-toast";
-
+import Image from "next/image";
 interface QrPaymentProps {
   amount: number;
   merchantName: string;
   walletName: string;
   walletNumber: string;
+  phone:string;
   transactionId: string;
   onTransactionIdChange: (value: string) => void;
   screenshot: File | null;
@@ -20,6 +21,7 @@ const QrPayment = ({
   merchantName,
   walletName,
   walletNumber,
+  phone,
   transactionId,
   onTransactionIdChange,
   screenshot,
@@ -43,18 +45,28 @@ const QrPayment = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-1">
       <div className="grid gap-4 sm:grid-cols-2">
-        {/* QR Code placeholder */}
-        <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-muted/40 p-4">
-          <div className="flex h-40 w-40 items-center justify-center rounded-lg border border-dashed border-border bg-background">
-            <QrCode className="h-16 w-16 text-muted-foreground" />
+        {/* QR Code */}
+        <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-muted/40 p-3 self-start">
+          <div className="flex aspect-square w-full max-w-[250px] items-center justify-center rounded-lg border border-dashed border-border">
+            <Image
+              src="/Images/vault_enterprises-qr.svg"
+              alt="Vault Enterprises QR Code"
+              width={300}
+              height={300}
+              priority
+              className="h-full w-full object-contain"
+            />
           </div>
-          <p className="text-xs text-muted-foreground">Scan with your wallet app</p>
+
+          <p className="text-md text-muted-foreground  font-bold">
+            Scan with your wallet app
+          </p>
         </div>
 
         {/* Merchant / wallet details */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div>
             <p className="text-xs text-muted-foreground">Merchant Name</p>
             <p className="text-sm font-semibold">{merchantName}</p>
@@ -64,6 +76,10 @@ const QrPayment = ({
             <p className="text-sm font-semibold">{walletName}</p>
           </div>
           <div>
+            <div className="pb-2">
+            <p className="text-xs text-muted-foreground">Phone Number</p>
+            <p className="text-sm font-semibold">{phone}</p>
+          </div>
             <p className="text-xs text-muted-foreground">Wallet Number</p>
             <div className="flex items-center gap-2">
               <p className="text-sm font-semibold">{walletNumber}</p>
@@ -83,52 +99,55 @@ const QrPayment = ({
               NPR {amount.toLocaleString()}
             </p>
           </div>
+         
         </div>
       </div>
 
-      {/* Transaction ID */}
-      <div className="space-y-2">
-        <label htmlFor="transactionId" className="text-sm font-medium">
-          Transaction ID
-        </label>
-        <Input
-          id="transactionId"
-          name="transactionId"
-          placeholder="Enter transaction ID from your payment app"
-          value={transactionId}
-          onChange={(e) => onTransactionIdChange(e.target.value)}
-        />
-        {errors.transactionId && (
-          <p className="text-xs text-red-600">{errors.transactionId}</p>
-        )}
-      </div>
+ {/* Transaction ID */}
+          <div className="space-y-3">
+            <label htmlFor="transactionId" className="text-sm font-medium p-2">
+              Transaction ID <span className="text-red-600">*</span>
+            </label>
+            <Input
+              id="transactionId"
+              name="transactionId"
+              placeholder="Enter transaction ID from your payment app"
+              value={transactionId}
+              onChange={(e) => onTransactionIdChange(e.target.value)}
+              required
+            />
+            {errors.transactionId && (
+              <p className="text-xs text-red-600">{errors.transactionId}</p>
+            )}
+          </div>
+          {/* Screenshot upload */}
+          <div className="space-y-2">
+            <label htmlFor="paymentScreenshot" className="text-sm font-medium">
+              Payment Screenshot <span className="text-red-600">*</span>
+            </label>
+            <label
+              htmlFor="paymentScreenshot"
+              className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border p-6 text-center hover:border-primary/50 transition-colors"
+            >
+              <Upload className="h-6 w-6 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
+                {screenshot ? screenshot.name : "Click to upload a screenshot"}
+              </span>
+              <input
+                id="paymentScreenshot"
+                name="paymentScreenshot"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleScreenshotSelect}
+                required
+              />
+            </label>
+            {errors.paymentScreenshot && (
+              <p className="text-xs text-red-600">{errors.paymentScreenshot}</p>
+            )}
+          </div>
 
-      {/* Screenshot upload */}
-      <div className="space-y-2">
-        <label htmlFor="paymentScreenshot" className="text-sm font-medium">
-          Payment Screenshot
-        </label>
-        <label
-          htmlFor="paymentScreenshot"
-          className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border p-6 text-center hover:border-primary/50 transition-colors"
-        >
-          <Upload className="h-6 w-6 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">
-            {screenshot ? screenshot.name : "Click to upload a screenshot"}
-          </span>
-          <input
-            id="paymentScreenshot"
-            name="paymentScreenshot"
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleScreenshotSelect}
-          />
-        </label>
-        {errors.paymentScreenshot && (
-          <p className="text-xs text-red-600">{errors.paymentScreenshot}</p>
-        )}
-      </div>
 
       {/* Instructions */}
       <div className="rounded-xl border border-border bg-muted/40 p-4">

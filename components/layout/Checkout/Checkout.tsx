@@ -598,9 +598,10 @@ export default function Checkout() {
                   <CardContent>
                     <QrPayment
                       amount={total}
-                      merchantName="Vault Enterprises Pvt. Ltd."
-                      walletName="Bank"
-                      walletNumber="9800000000"
+                      merchantName="VAULT ENTERPRISES PRIVATE LIMITED"
+                      walletName="Sanima Bank"
+                      walletNumber="2222110021134254"
+                      phone="9840320862"
                       transactionId={transactionId}
                       onTransactionIdChange={setTransactionId}
                       screenshot={paymentScreenshot}
