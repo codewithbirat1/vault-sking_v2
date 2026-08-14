@@ -33,16 +33,13 @@ export default function SearchDrawer({
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
-
-  // Load recent searches on mount
-  useEffect(() => {
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     try {
-      setRecentSearches(getRecentSearches());
+      return getRecentSearches();
     } catch {
-      setRecentSearches([]);
+      return [];
     }
-  }, []);
+  });
 
   // Lock body scroll while open and restore correctly
   useEffect(() => {

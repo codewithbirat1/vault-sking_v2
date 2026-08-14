@@ -2,7 +2,7 @@ import React from "react";
 
 type HighlightedTextProps = {
   text: string;
-  indices?: readonly [number, number][];
+  indices?: ReadonlyArray<readonly [number, number]>;
 };
 
 export default function HighlightedText({ text, indices }: HighlightedTextProps) {

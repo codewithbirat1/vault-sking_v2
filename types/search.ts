@@ -12,10 +12,11 @@ export type SearchResult = {
   price: string;
   status?: string | null;
   rating?: number;
-  matches?: Array<{
-    indices: readonly [number, number][];
-    key: string;
-    value: string;
+  matches?: ReadonlyArray<{
+    indices: ReadonlyArray<readonly [number, number]>;
+    key?: string;
+    refIndex?: number;
+    value?: string;
   }>;
 };
 

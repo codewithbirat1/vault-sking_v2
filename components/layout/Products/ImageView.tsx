@@ -20,7 +20,7 @@ const ImageView = ({ images = [], isStock }: Props) => {
       typeof image?.src === "string" && image.src.trim().length > 0,
   );
 
-  const [active, setActive] = useState(validImages[0]);
+  const [userSelection, setUserSelection] = useState<{ src: string; alt: string } | null>(null);
   const [startIndex, setStartIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(4);
 
@@ -37,14 +37,12 @@ const ImageView = ({ images = [], isStock }: Props) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Sync active image with sliding window if necessary, or just keep sliding range bounded
-  useEffect(() => {
-    if (validImages.length > 0 && !validImages.some(img => img.src === active?.src)) {
-      setActive(validImages[0]);
-    }
-  }, [images, validImages, active]);
+  const displayedImage =
+    userSelection && validImages.some((img) => img.src === userSelection.src)
+      ? userSelection
+      : validImages[0] ?? null;
 
-  if (!active) return null;
+  if (!displayedImage) return null;
 
   const nextSlide = () => {
     setStartIndex((prev) => Math.min(prev + 1, validImages.length - visibleCount));
@@ -71,7 +69,7 @@ const ImageView = ({ images = [], isStock }: Props) => {
       >
         <AnimatePresence mode="wait">
           <m.div
-            key={active.src}
+            key={displayedImage.src}
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
@@ -82,12 +80,12 @@ const ImageView = ({ images = [], isStock }: Props) => {
             className="absolute inset-0"
           >
             <Image
-              src={active.src}
-              alt={active.alt}
+              src={displayedImage.src}
+              alt={displayedImage.alt}
               fill
               priority
               fetchPriority="high"
-              unoptimized={isS3Url(active.src)}
+              unoptimized={isS3Url(displayedImage.src)}
               sizes="(max-width: 1024px) 100vw, 50vw"
               className={`
                 object-cover
@@ -123,7 +121,7 @@ const ImageView = ({ images = [], isStock }: Props) => {
               <button
                 key={image.src}
                 type="button"
-                onClick={() => setActive(image)}
+                onClick={() => setUserSelection(image)}
                 className={`
                   h-20
                   w-20
@@ -135,7 +133,7 @@ const ImageView = ({ images = [], isStock }: Props) => {
                   transition-all
                   duration-300
                   ${
-                    active.src === image.src
+                    displayedImage.src === image.src
                       ? "border-primary shadow-md scale-105"
                       : "border-border hover:border-primary/40 hover:scale-105"
                   }

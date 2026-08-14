@@ -80,7 +80,7 @@ export function useSearch(query: string) {
       const fuseResults = fuse.search(searchTerm);
       const ranked: SearchResult[] = fuseResults.map((res) => ({
         ...res.item,
-        matches: res.matches as any,
+        matches: res.matches,
       }));
       setResults(ranked);
       setHighlightedIndex(-1);

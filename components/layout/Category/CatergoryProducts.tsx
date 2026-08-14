@@ -26,9 +26,10 @@ const ProductSkeleton = () => (
 
 const CategoryProducts = ({ categories, slug }: Props) => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [categoryId, setCategoryId] = useState<string | null>(null);
-  // Start as loading — data for this slug hasn't been resolved yet
-  const [isLoading, setIsLoading] = useState(true);
+  // Tracks which slug the current products/resolution belong to.
+  // When dataSlug !== normalizedSlug, the UI shows loading skeletons —
+  // no synchronous reset effect needed.
+  const [dataSlug, setDataSlug] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -41,67 +42,67 @@ const CategoryProducts = ({ categories, slug }: Props) => {
     return mapping[slug.toLowerCase()] || slug;
   }, [slug]);
 
-  // When the slug changes, immediately reset to a fresh loading state
-  // so the grid shows skeletons instead of stale or empty content.
-  useEffect(() => {
-    setIsLoading(true);
-    setProducts([]);
-    setCategoryId(null);
-  }, [normalizedSlug]);
+  // Derive loading state: data hasn't arrived for the current slug yet
+  const isLoading = dataSlug !== normalizedSlug;
+  // Only show products that belong to the current slug
+  const displayProducts = dataSlug === normalizedSlug ? products : [];
 
-  // Step 1 — resolve normalizedSlug → categoryId
+  // Subscribe: normalizedSlug → categoryId → products (single effect)
   useEffect(() => {
     let isCurrent = true;
+    let productUnsub: (() => void) | undefined;
 
-    const unsubscribe = onSnapshot(
+    const categoryUnsub = onSnapshot(
       query(collection(db, "categories"), where("slug.current", "==", normalizedSlug)),
       (snapshot) => {
         if (!isCurrent) return;
         const match = snapshot.docs[0];
-        setCategoryId(match?.id ?? null);
-        // No matching category in DB → stop loading immediately
-        if (!match) setIsLoading(false);
+
+        if (!match) {
+          // No matching category — resolve with empty products
+          setProducts([]);
+          setDataSlug(normalizedSlug);
+          return;
+        }
+
+        // Tear down any previous product listener from an earlier snapshot
+        productUnsub?.();
+
+        productUnsub = onSnapshot(
+          query(collection(db, "products"), where("category", "==", match.id)),
+          (productSnapshot) => {
+            if (!isCurrent) return;
+            const data = productSnapshot.docs.map((doc) => ({
+              ...(doc.data() as Omit<Product, "_id">),
+              _id: doc.id,
+            }));
+            setProducts(data);
+            setDataSlug(normalizedSlug);
+          },
+          (error) => {
+            console.error(error);
+            if (isCurrent) {
+              setProducts([]);
+              setDataSlug(normalizedSlug);
+            }
+          },
+        );
       },
       (error) => {
         console.error(error);
-        if (isCurrent) setIsLoading(false);
+        if (isCurrent) {
+          setProducts([]);
+          setDataSlug(normalizedSlug);
+        }
       },
     );
 
     return () => {
       isCurrent = false;
-      unsubscribe();
+      categoryUnsub();
+      productUnsub?.();
     };
   }, [normalizedSlug]);
-
-  // Step 2 — fetch products for the resolved categoryId
-  useEffect(() => {
-    if (!categoryId) return;
-
-    let isCurrent = true;
-
-    const unsubscribe = onSnapshot(
-      query(collection(db, "products"), where("category", "==", categoryId)),
-      (snapshot) => {
-        if (!isCurrent) return;
-        const data = snapshot.docs.map((doc) => ({
-          ...(doc.data() as Omit<Product, "_id">),
-          _id: doc.id,
-        }));
-        setProducts(data);
-        setIsLoading(false);
-      },
-      (error) => {
-        console.error(error);
-        if (isCurrent) setIsLoading(false);
-      },
-    );
-
-    return () => {
-      isCurrent = false;
-      unsubscribe();
-    };
-  }, [categoryId]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -219,10 +220,10 @@ const CategoryProducts = ({ categories, slug }: Props) => {
               <ProductSkeleton key={i} />
             ))}
           </div>
-        ) : products.length > 0 ? (
+        ) : displayProducts.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
             <AnimatePresence>
-              {products.map((p) => (
+              {displayProducts.map((p) => (
                 <m.div key={p._id} layout>
                   <ProductCard product={p} />
                 </m.div>

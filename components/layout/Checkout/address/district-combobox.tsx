@@ -50,8 +50,6 @@ const DistrictCombobox = ({
             {...props}
             id={id}
             type="button"
-            role="combobox"
-            aria-expanded={open}
             className={cn(
               buttonVariants({ variant: "outline" }),
               "w-full justify-between font-normal"
