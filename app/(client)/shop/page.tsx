@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Shop | Vault Skin",
+  title: "Shop",
   description:
     "Browse authentic skincare products from trusted brands at Vault Skin. Filter by category, brand, price, and more.",
 };

@@ -9,7 +9,7 @@ import React from "react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Blog | Vault Skin",
+  title: "Blog",
   description:
     "Skincare tips, product guides, and beauty insights from Vault Skin — your trusted skincare destination in Nepal.",
 };

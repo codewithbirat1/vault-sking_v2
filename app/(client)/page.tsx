@@ -3,6 +3,13 @@ import HomeClient from "@/components/HomeClient";
 import LatestBlog from "@/components/layout/Blogs/LatestBlog";
 import Container from "@/components/Container";
 
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Home",
+  description: "Welcome to Vault Skin, your destination for premium skincare products.",
+};
+
 export default function Page() {
   return (
     <>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useLayoutEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -81,6 +81,7 @@ export default function Checkout() {
   const { user } = useUser();
   const { cart, clearCart } = useCart();
   const [cartProducts, setCartProducts] = useState<CartProduct[]>([]);
+  const [cartLoaded, setCartLoaded] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState<SavedAddressData[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
@@ -91,10 +92,19 @@ export default function Checkout() {
       const data = await getCartProducts(cart);
 
       setCartProducts(data);
+      setCartLoaded(true);
     };
 
     load();
   }, [cart]);
+
+  // Redirect to cart if the cart is empty
+  useLayoutEffect(() => {
+    if (cartLoaded && cartProducts.length === 0 && !placedOrderId) {
+      toast.error("Your cart is empty. Add items before checking out.");
+      router.replace("/cart");
+    }
+  }, [cartLoaded, cartProducts.length, placedOrderId, router]);
 
   useEffect(() => {
     const loadAddresses = async () => {
@@ -565,11 +575,10 @@ export default function Checkout() {
                   >
                     <div
                       onClick={() => setPaymentMethod("cod")}
-                      className={`rounded-xl border p-4 cursor-pointer transition-colors ${
-                        paymentMethod === "cod"
+                      className={`rounded-xl border p-4 cursor-pointer transition-colors ${paymentMethod === "cod"
                           ? "border-primary bg-primary/5"
                           : "border-border hover:border-primary/50"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-start gap-3">
                         <RadioGroupItem value="cod" id="payment-cod" />
@@ -588,11 +597,10 @@ export default function Checkout() {
 
                     <div
                       onClick={() => setPaymentMethod("qr")}
-                      className={`rounded-xl border p-4 cursor-pointer transition-colors ${
-                        paymentMethod === "qr"
+                      className={`rounded-xl border p-4 cursor-pointer transition-colors ${paymentMethod === "qr"
                           ? "border-primary bg-primary/5"
                           : "border-border hover:border-primary/50"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-start gap-3">
                         <RadioGroupItem value="qr" id="payment-qr" />

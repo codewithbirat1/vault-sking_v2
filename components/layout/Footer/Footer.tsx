@@ -20,8 +20,7 @@ const Footer = () => {
           <div className="space-y-4">
             <Logo />
             <SubText>
-              Discover curated furniture collections at Shopcartyt, blending
-              style and comfort to elevate your living spaces.
+              Vault Skin is a newly launched skincare retailer dedicated to bringing authentic products from trusted brands like SkinInspired to customers across Nepal.
             </SubText>
             <SocialMedia
               className="text-primary/60"

@@ -7,7 +7,7 @@ import MissionVision from "@/components/layout/About/MissionVision";
 import Values from "@/components/layout/About/Values";
 
 export const metadata = {
-  title: "About Us | Vault Skin",
+  title: "About Us",
   description: "Learn more about Vault Skin, your trusted destination for authentic skincare products in Nepal.",
 };
 

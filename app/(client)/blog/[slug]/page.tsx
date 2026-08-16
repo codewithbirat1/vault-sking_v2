@@ -23,14 +23,20 @@ export async function generateMetadata({
   const blog = await getSingleBlog(slug);
 
   if (!blog) {
-    return { title: "Blog | Vault Skin" };
+    return { title: "Blog" };
   }
 
+  const desc = blog.body?.replace(/<[^>]*>/g, "").slice(0, 160) || `Read ${blog.title} on the Vault Skin blog.`;
+
   return {
-    title: `${blog.title} | Vault Skin`,
-    description:
-      blog.body?.replace(/<[^>]*>/g, "").slice(0, 160) ||
-      `Read ${blog.title} on the Vault Skin blog.`,
+    title: blog.title,
+    description: desc,
+    openGraph: {
+      title: blog.title,
+      description: desc,
+      images: blog.mainImage ? [{ url: blog.mainImage }] : [],
+      type: "article",
+    },
   };
 }
 

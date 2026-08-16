@@ -57,16 +57,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const snapshot = await getDocs(q);
 
   if (snapshot.empty) {
-    return { title: "Product | Vault Skin" };
+    return { title: "Product" };
   }
 
   const product = snapshot.docs[0].data() as Product;
+  
+  const productImages = (product.images ?? []).map((img) => getImageSrc(img)).filter(Boolean);
+  const ogImage = productImages.length > 0 ? productImages[0] : (typeof product.thumbnail === "string" ? getSafeImageSrc(product.thumbnail) : "");
 
   return {
-    title: `${product.name} | Vault Skin`,
+    title: product.name,
     description:
       product.description?.slice(0, 160) ||
       `Shop ${product.name} at Vault Skin — authentic skincare in Nepal.`,
+    openGraph: {
+      title: product.name,
+      description: product.description?.slice(0, 160) || `Shop ${product.name} at Vault Skin.`,
+      images: ogImage ? [{ url: ogImage }] : [],
+    },
   };
 }
 

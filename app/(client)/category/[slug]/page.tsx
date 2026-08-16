@@ -14,9 +14,7 @@ export async function generateMetadata({
   const category = getCategories().find((item) => item.slug.current === slug);
 
   return {
-    title: category
-      ? `${category.title} | Vault Skin`
-      : `${slug} | Vault Skin`,
+    title: category ? category.title : slug,
     description:
       category?.description ||
       `Browse ${category?.title ?? slug} skincare products at Vault Skin.`,
