@@ -28,11 +28,38 @@ import {
 } from "@/lib/addressService";
 import { useCart } from "@/hooks/useCart";
 import { CartProduct, getCartProducts } from "@/utils/cartHelper";
-import { placeOrder, calculateShippingCharge, type PaymentMethod } from "@/lib/orderService";
+import {
+  placeOrder,
+  calculateShippingCharge,
+  type PaymentMethod,
+} from "@/lib/orderService";
 import Image from "next/image";
 import { getSafeImageSrc, isS3Url } from "@/lib/image";
-import { storage } from "@/config/firebase.config";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
+const uploadPaymentScreenshot = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("folder", "payment-screenshots");
+
+  const response = await fetch("/api/upload", {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = (await response.json()) as
+    | { success: true; url: string }
+    | { success: false; error?: string };
+
+  if (!response.ok || !data.success) {
+    throw new Error(
+      data.success
+        ? "Image upload failed"
+        : (data.error ?? "Image upload failed"),
+    );
+  }
+
+  return data.url;
+};
 
 interface SavedAddressData {
   id: string;
@@ -110,9 +137,7 @@ export default function Checkout() {
   );
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
   const [transactionId, setTransactionId] = useState("");
-  const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(
-    null,
-  );
+  const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     fullName: "",
@@ -131,12 +156,14 @@ export default function Checkout() {
     return total + discountedPrice * item.quantity;
   }, 0);
 
-  const shipping = formData.district ? calculateShippingCharge(formData.district) : 0;
-  
+  const shipping = formData.district
+    ? calculateShippingCharge(formData.district)
+    : 0;
+
   const discount = cartProducts.reduce((total, item) => {
     return total + item.discount * item.quantity;
   }, 0);
-  
+
   const total = subtotal + shipping;
 
   const handleInputChange = (
@@ -193,7 +220,7 @@ export default function Checkout() {
     if (!user?.id) return;
     try {
       await deleteAddress(user.id, addressId);
-      
+
       const addresses = await getAddresses(user.id);
       setSavedAddresses(
         addresses.map((address, index) => ({
@@ -226,7 +253,7 @@ export default function Checkout() {
           saveAddress: false,
         });
       }
-      
+
       toast.success("Address deleted successfully.");
     } catch (error) {
       console.error("Failed to delete address:", error);
@@ -334,71 +361,68 @@ export default function Checkout() {
   const processOrder = async () => {
     setShowConfirmDialog(false);
     setIsSubmitting(true);
-      try {
-        let screenshotUrl = "";
-        if (paymentMethod === "qr" && paymentScreenshot) {
-          const path = `payment-screenshots/${Date.now()}-${paymentScreenshot.name}`;
-          const storageRef = ref(storage, path);
-          await uploadBytes(storageRef, paymentScreenshot);
-          screenshotUrl = await getDownloadURL(storageRef);
-        }
-
-        if (!user?.id) {
-          throw new Error("You must be logged in to place an order.");
-        }
-
-        const orderId = await placeOrder({
-          userId: user.id,
-          paymentMethod,
-          transactionId: paymentMethod === "qr" ? transactionId.trim() : undefined,
-          paymentScreenshot:
-            paymentMethod === "qr" ? screenshotUrl : undefined,
-          shippingAddress: {
-            fullName: formData.fullName.trim(),
-            phone: formData.phone.trim(),
-            email: formData.email.trim(),
-            address: formData.address.trim(),
-            city: formData.city.trim(),
-            district: formData.district.trim(),
-            zipCode: formData.zipCode.trim(),
-          },
-          items: cartProducts.map((item) => ({
-            productId: item._id,
-            title: item.name,
-            thumbnail: item.thumbnail,
-            price: item.price,
-            discount: item.discount,
-            quantity: item.quantity,
-            sku: item.sku,
-          })),
-        });
-
-        try {
-          await clearCart();
-        } catch (clearError) {
-          console.error(
-            "Failed to clear cart after order placement:",
-            clearError,
-          );
-        }
-
-        setPlacedOrderId(orderId);
-        setFormErrors({});
-        toast.success(
-          paymentMethod === "qr"
-            ? "Order placed successfully. We'll verify your payment shortly."
-            : "Order placed successfully. Cash on delivery selected.",
-        );
-      } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Unable to place order right now.";
-        setFormErrors({ submit: message });
-        toast.error(message);
-      } finally {
-        setIsSubmitting(false);
+    try {
+      let screenshotUrl = "";
+      if (paymentMethod === "qr" && paymentScreenshot) {
+        screenshotUrl = await uploadPaymentScreenshot(paymentScreenshot);
       }
+
+      if (!user?.id) {
+        throw new Error("You must be logged in to place an order.");
+      }
+
+      const orderId = await placeOrder({
+        userId: user.id,
+        paymentMethod,
+        transactionId:
+          paymentMethod === "qr" ? transactionId.trim() : undefined,
+        paymentScreenshot: paymentMethod === "qr" ? screenshotUrl : undefined,
+        shippingAddress: {
+          fullName: formData.fullName.trim(),
+          phone: formData.phone.trim(),
+          email: formData.email.trim(),
+          address: formData.address.trim(),
+          city: formData.city.trim(),
+          district: formData.district.trim(),
+          zipCode: formData.zipCode.trim(),
+        },
+        items: cartProducts.map((item) => ({
+          productId: item._id,
+          title: item.name,
+          thumbnail: item.thumbnail,
+          price: item.price,
+          discount: item.discount,
+          quantity: item.quantity,
+          sku: item.sku,
+        })),
+      });
+
+      try {
+        await clearCart();
+      } catch (clearError) {
+        console.error(
+          "Failed to clear cart after order placement:",
+          clearError,
+        );
+      }
+
+      setPlacedOrderId(orderId);
+      setFormErrors({});
+      toast.success(
+        paymentMethod === "qr"
+          ? "Order placed successfully. We'll verify your payment shortly."
+          : "Order placed successfully. Cash on delivery selected.",
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to place order right now.";
+      setFormErrors({ submit: message });
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (placedOrderId) {
@@ -409,7 +433,9 @@ export default function Checkout() {
             <Card className="border-border/70 shadow-sm">
               <CardHeader className="space-y-3">
                 <Badge variant="secondary" className="w-fit">
-                  {paymentMethod === "qr" ? "Manual QR Payment" : "Cash on Delivery"}
+                  {paymentMethod === "qr"
+                    ? "Manual QR Payment"
+                    : "Cash on Delivery"}
                 </Badge>
                 <CardTitle className="text-3xl tracking-tight">
                   Order confirmed
@@ -590,7 +616,9 @@ export default function Checkout() {
               {paymentMethod === "qr" && (
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Scan &amp; Pay via QR</CardTitle>
+                    <CardTitle className="text-lg">
+                      Scan &amp; Pay via QR
+                    </CardTitle>
                     <CardDescription>
                       Complete your payment and submit the details below.
                     </CardDescription>
