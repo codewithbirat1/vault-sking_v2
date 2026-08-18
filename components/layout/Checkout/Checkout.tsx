@@ -15,7 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ShieldCheck, Truck } from "lucide-react";
+import { ShieldCheck, Truck, Loader2 } from "lucide-react";
 import Container from "@/components/Container";
 import SavedAddress from "./address/saved-address";
 import AddressForm from "./address/address-form";
@@ -79,16 +79,36 @@ const mockSavedAddresses: SavedAddressData[] = [];
 export default function Checkout() {
   const router = useRouter();
   const { user } = useUser();
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, loading } = useCart();
   const [cartProducts, setCartProducts] = useState<CartProduct[]>([]);
   const [cartLoaded, setCartLoaded] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState<SavedAddressData[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isSubmitting) {
+      setProgress(0);
+      interval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 90) return prev;
+          const increment = Math.random() * 10 + 5;
+          return Math.min(prev + increment, 90);
+        });
+      }, 500);
+    } else {
+      setProgress(0);
+    }
+    return () => clearInterval(interval);
+  }, [isSubmitting]);
 
   useEffect(() => {
     const load = async () => {
+      if (loading) return;
+      
       const data = await getCartProducts(cart);
 
       setCartProducts(data);
@@ -96,15 +116,15 @@ export default function Checkout() {
     };
 
     load();
-  }, [cart]);
+  }, [cart, loading]);
 
   // Redirect to cart if the cart is empty
   useLayoutEffect(() => {
-    if (cartLoaded && cartProducts.length === 0 && !placedOrderId) {
+    if (!loading && cartLoaded && cartProducts.length === 0 && !placedOrderId) {
       toast.error("Your cart is empty. Add items before checking out.");
       router.replace("/cart");
     }
-  }, [cartLoaded, cartProducts.length, placedOrderId, router]);
+  }, [loading, cartLoaded, cartProducts.length, placedOrderId, router]);
 
   useEffect(() => {
     const loadAddresses = async () => {
@@ -407,6 +427,8 @@ export default function Checkout() {
         })),
       });
 
+      setPlacedOrderId(orderId);
+
       try {
         await clearCart();
       } catch (clearError) {
@@ -416,7 +438,8 @@ export default function Checkout() {
         );
       }
 
-      setPlacedOrderId(orderId);
+      setProgress(100);
+      await new Promise(resolve => setTimeout(resolve, 400)); // wait for progress bar to finish animating
       setFormErrors({});
       toast.success(
         paymentMethod === "qr"
@@ -430,6 +453,7 @@ export default function Checkout() {
           : "Unable to place order right now.";
       setFormErrors({ submit: message });
       toast.error(message);
+      setProgress(0);
     } finally {
       setIsSubmitting(false);
     }
@@ -658,7 +682,7 @@ export default function Checkout() {
               {/* Confirm Button */}
               <Button
                 onClick={handleConfirmOrder}
-                className="w-full"
+                className="w-full relative overflow-hidden"
                 size="lg"
                 disabled={
                   isSubmitting ||
@@ -673,7 +697,15 @@ export default function Checkout() {
                     (!transactionId.trim() || !paymentScreenshot))
                 }
               >
-                {isSubmitting ? "Placing Order..." : "Confirm Order"}
+                {/* Progress Bar Background */}
+                <div 
+                  className={`absolute left-0 top-0 bottom-0 bg-white/20 transition-all duration-300 ease-out ${isSubmitting ? 'opacity-100' : 'opacity-0'}`} 
+                  style={{ width: `${progress}%` }} 
+                />
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {isSubmitting ? "Placing Order..." : "Confirm Order"}
+                </span>
               </Button>
 
               {/* Information Alert */}

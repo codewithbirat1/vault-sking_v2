@@ -39,7 +39,7 @@ export const useCart = () => {
     return getGuestCart();
   });
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   /**
    * Listen to Firestore when user signs in
@@ -51,6 +51,7 @@ export const useCart = () => {
       window.addEventListener("storage", syncCart);
       
       syncCart(); // initial sync
+      setLoading(false);
 
       return () => {
         window.removeEventListener("guest_cart_updated", syncCart);
