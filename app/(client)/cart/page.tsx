@@ -15,7 +15,7 @@ import Image from "next/image";
 import { getSafeImageSrc, isS3Url } from "@/lib/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 
 import { useUser } from "@clerk/nextjs";
@@ -68,15 +68,33 @@ const CartPage = () => {
   const { cart, removeFromCart, clearCart, loading } = useCart();
   const [cartProducts, setCartProducts] = useState<CartProduct[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const prevCartRef = useRef(cart);
 
   useEffect(() => {
     let isCurrent = true;
     const load = async () => {
+      const prevIds = prevCartRef.current.map(c => c.productId).sort().join(',');
+      const currentIds = cart.map(c => c.productId).sort().join(',');
+
+      if (prevIds === currentIds && prevCartRef.current.length > 0) {
+        // Only quantities changed (or no changes)
+        setCartProducts((prev) => 
+          prev.map((p) => {
+            const cartItem = cart.find((c) => c.productId === p._id);
+            return cartItem ? { ...p, quantity: cartItem.quantity } : p;
+          })
+        );
+        prevCartRef.current = cart;
+        setLoadingProducts(false);
+        return;
+      }
+
       setLoadingProducts(true);
       const data = await getCartProducts(cart);
       if (isCurrent) {
         setCartProducts(data);
         setLoadingProducts(false);
+        prevCartRef.current = cart;
       }
     };
 
