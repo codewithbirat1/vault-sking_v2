@@ -17,8 +17,6 @@ const Logo = ({ className }: { className?: string }) => {
         alt="Vault Enterprises Logo"
         width={300}
         height={100}
-        priority
-        loading="eager"
         className="h-14 md:h-16 w-auto object-contain scale-[1.3] md:scale-[1.5] origin-left"
       />
     </Link>

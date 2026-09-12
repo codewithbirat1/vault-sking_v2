@@ -1,8 +1,7 @@
 "use client";
 
-import { AnimatePresence, m } from "motion/react";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { isS3Url } from "@/lib/image";
 
@@ -22,20 +21,6 @@ const ImageView = ({ images = [], isStock }: Props) => {
 
   const [userSelection, setUserSelection] = useState<{ src: string; alt: string } | null>(null);
   const [startIndex, setStartIndex] = useState(0);
-  const [visibleCount, setVisibleCount] = useState(4);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 1024) {
-        setVisibleCount(3);
-      } else {
-        setVisibleCount(4);
-      }
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   const displayedImage =
     userSelection && validImages.some((img) => img.src === userSelection.src)
@@ -45,7 +30,7 @@ const ImageView = ({ images = [], isStock }: Props) => {
   if (!displayedImage) return null;
 
   const nextSlide = () => {
-    setStartIndex((prev) => Math.min(prev + 1, validImages.length - visibleCount));
+    setStartIndex((prev) => Math.min(prev + 1, Math.max(0, validImages.length - 3)));
   };
 
   const prevSlide = () => {
@@ -67,41 +52,32 @@ const ImageView = ({ images = [], isStock }: Props) => {
           shadow-sm
         "
       >
-        <AnimatePresence mode="wait">
-          <m.div
-            key={displayedImage.src}
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "-100%" }}
-            transition={{
-              duration: 0.15,
-              ease: "easeInOut",
-            }}
-            className="absolute inset-0"
-          >
-            <Image
-              src={displayedImage.src}
-              alt={displayedImage.alt}
-              fill
-              priority
-              fetchPriority="high"
-              unoptimized={isS3Url(displayedImage.src)}
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className={`
-                object-cover
-                transition-all
-                duration-350
-                ease-out
-                hover:scale-[1.03]
-                ${isStock === 0 ? "opacity-50" : ""}
-              `}
-            />
-          </m.div>
-        </AnimatePresence>
+        <div
+          key={displayedImage.src}
+          className="absolute inset-0"
+        >
+          <Image
+            src={displayedImage.src}
+            alt={displayedImage.alt}
+            fill
+            priority
+            fetchPriority="high"
+            unoptimized={isS3Url(displayedImage.src)}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 42vw"
+            className={`
+              object-cover
+              transition-all
+              duration-350
+              ease-out
+              hover:scale-[1.03]
+              ${isStock === 0 ? "opacity-50" : ""}
+            `}
+          />
+        </div>
       </div>
 
       <div className="flex items-center gap-2">
-        {validImages.length > visibleCount && startIndex > 0 && (
+        {validImages.length > 3 && startIndex > 0 && (
           <button
             type="button"
             onClick={prevSlide}
@@ -117,7 +93,7 @@ const ImageView = ({ images = [], isStock }: Props) => {
             className="flex gap-3 transition-transform duration-300 ease-in-out"
             style={{ transform: `translateX(-${startIndex * 92}px)` }}
           >
-            {validImages.map((image, index) => (
+            {validImages.map((image) => (
               <button
                 key={image.src}
                 type="button"
@@ -139,14 +115,12 @@ const ImageView = ({ images = [], isStock }: Props) => {
                   }
                 `}
               >
-                 <Image
+                <Image
                   src={image.src}
                   alt={image.alt}
-                  width={100}
-                  height={100}
-                  priority={index === 0}
-                  fetchPriority={index === 0 ? "high" : "auto"}
-                  loading={index === 0 ? undefined : "lazy"}
+                  width={80}
+                  height={80}
+                  loading="lazy"
                   unoptimized={isS3Url(image.src)}
                   className="w-full h-full object-cover"
                 />
@@ -155,7 +129,7 @@ const ImageView = ({ images = [], isStock }: Props) => {
           </div>
         </div>
 
-        {validImages.length > visibleCount && startIndex + visibleCount < validImages.length && (
+        {validImages.length > 3 && startIndex + 3 < validImages.length && (
           <button
             type="button"
             onClick={nextSlide}

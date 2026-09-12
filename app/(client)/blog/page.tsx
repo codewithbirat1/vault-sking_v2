@@ -22,11 +22,11 @@ const BlogPage = async () => {
       <Container>
         <Title className="py-4">Latest Blogs</Title>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 py-2 md:py-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8 py-2 md:py-5 px-4 md:px-0">
           {blogs?.map((blog) => (
             <div
               key={blog?._id}
-              className="group w-full max-w-xs rounded-md overflow-hidden bg-white shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
+              className="group w-full max-w-sm mx-auto md:max-w-none md:mx-0 rounded-md overflow-hidden bg-white shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
             >
               {blog?.mainImage && blog.mainImage.trim().length > 0 && (
                 <div className="overflow-hidden">

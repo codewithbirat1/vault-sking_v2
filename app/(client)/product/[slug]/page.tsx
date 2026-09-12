@@ -13,12 +13,14 @@ import ProductUsage from "@/components/layout/Products/ProductUsage";
 import ProductTabs, {
   type Tab,
 } from "@/components/layout/Products/ProductTabs";
-import {  StarIcon, Check, Tag } from "lucide-react";
+import { StarIcon, Check, Tag } from "lucide-react";
+import { cache } from "react";
 import { notFound } from "next/navigation";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, limit } from "firebase/firestore";
 import { db } from "@/config/firebase.config";
 import { Product } from "@/data/products";
 import RecommendedProducts from "@/components/layout/Products/RecommendedProducts";
+import { serializeFirestoreData } from "@/lib/serialize";
 import type { Metadata } from "next";
 
 interface Props {
@@ -46,9 +48,21 @@ const getImageSrc = (image: unknown) => {
   return typeof firstValid === "string" ? getSafeImageSrc(firstValid.trim()) : "";
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+export const revalidate = 60;
 
+export async function generateStaticParams() {
+  try {
+    const q = query(collection(db, "products"), limit(20));
+    const snapshot = await getDocs(q);
+    return snapshot.docs
+      .map((doc) => ({ slug: doc.data().slug?.current }))
+      .filter((item): item is { slug: string } => typeof item.slug === "string" && item.slug.length > 0);
+  } catch {
+    return [];
+  }
+}
+
+const getProductBySlug = cache(async (slug: string): Promise<Product | null> => {
   const q = query(
     collection(db, "products"),
     where("slug.current", "==", slug),
@@ -57,10 +71,38 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const snapshot = await getDocs(q);
 
   if (snapshot.empty) {
-    return { title: "Product" };
+    return null;
   }
 
-  const product = snapshot.docs[0].data() as Product;
+  const doc = snapshot.docs[0];
+  return serializeFirestoreData<Product>({
+    ...(doc.data() as Omit<Product, "_id">),
+    _id: doc.id,
+  });
+});
+
+const getRecommendedProducts = cache(async (): Promise<Product[]> => {
+  try {
+    const q = query(collection(db, "products"), limit(6));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) =>
+      serializeFirestoreData<Product>({
+        ...(doc.data() as Omit<Product, "_id">),
+        _id: doc.id,
+      })
+    );
+  } catch {
+    return [];
+  }
+});
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const product = await getProductBySlug(slug);
+
+  if (!product) {
+    return { title: "Product" };
+  }
   
   const productImages = (product.images ?? []).map((img) => getImageSrc(img)).filter(Boolean);
   const ogImage = productImages.length > 0 ? productImages[0] : (typeof product.thumbnail === "string" ? getSafeImageSrc(product.thumbnail) : "");
@@ -81,23 +123,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function SingleProductPage({ params }: Props) {
   const { slug } = await params;
 
-  const q = query(
-    collection(db, "products"),
-    where("slug.current", "==", slug),
-  );
+  const [product, recommendedPool] = await Promise.all([
+    getProductBySlug(slug),
+    getRecommendedProducts(),
+  ]);
 
-  const snapshot = await getDocs(q);
-
-  if (snapshot.empty) {
+  if (!product) {
     notFound();
   }
 
-  const doc = snapshot.docs[0];
-
-  const product = {
-    ...(doc.data() as Omit<Product, "_id">),
-    _id: doc.id,
-  };
+  const recommendedProducts = recommendedPool
+    .filter((p) => p._id !== product._id)
+    .slice(0, 4);
 
 
   const productImages = (product.images ?? []).reduce<
@@ -301,7 +338,7 @@ export default async function SingleProductPage({ params }: Props) {
 
           return <ProductTabs tabs={tabs} />;
         })()}
-        <RecommendedProducts currentProductId={product._id} />
+        <RecommendedProducts products={recommendedProducts} />
       </Container>
     </>
   );

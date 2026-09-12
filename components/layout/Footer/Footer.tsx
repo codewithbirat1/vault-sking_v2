@@ -8,8 +8,7 @@ import { categoriesData, quickLinksData } from "@/constants/data";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { PrivacyPolicyDialog } from "@/components/legal/PrivacyPolicyDialog";
-import { TermsDialog } from "@/components/legal/TermsDialog";
+import { FooterTermsLink, FooterPrivacyLink } from "./FooterDialogLink";
 
 const Footer = () => {
   return (
@@ -35,22 +34,22 @@ const Footer = () => {
                 if (item?.title === "Terms & Conditions") {
                   return (
                     <li key={item?.title}>
-                      <TermsDialog>
+                      <FooterTermsLink>
                         <span className="hover:text-accent hoverEffect font-medium text-left">
                           {item?.title}
                         </span>
-                      </TermsDialog>
+                      </FooterTermsLink>
                     </li>
                   );
                 }
                 if (item?.title === "Privacy Policy") {
                   return (
                     <li key={item?.title}>
-                      <PrivacyPolicyDialog>
+                      <FooterPrivacyLink>
                         <span className="hover:text-accent hoverEffect font-medium text-left">
                           {item?.title}
                         </span>
-                      </PrivacyPolicyDialog>
+                      </FooterPrivacyLink>
                     </li>
                   );
                 }

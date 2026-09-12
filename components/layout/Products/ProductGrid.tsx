@@ -51,12 +51,16 @@ const ProductGrid = () => {
       <HomeTabBar selectedTab={selectedTab} onTabSelect={setSelectedTab} />
 
       {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-x-3 gap-y-2 lg:gap-x-4 lg:gap-y-3 w-full ">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-x-3 gap-y-2 lg:gap-x-4 lg:gap-y-3 w-full">
           {Array.from({ length: 10 }).map((_, i) => (
-            <div
-              key={i}
-              className="aspect-4/5 rounded-md bg-bg/60 animate-pulse"
-            />
+            <div key={i} className="flex flex-col text-sm animate-pulse">
+              <div className="aspect-[4/5.4] rounded-md bg-neutral-200/80 dark:bg-neutral-800/80 w-full" />
+              <div className="flex flex-col gap-1.5 mt-2">
+                <div className="h-4 bg-neutral-200/80 dark:bg-neutral-800/80 rounded w-3/4" />
+                <div className="h-4 bg-neutral-200/60 dark:bg-neutral-800/60 rounded w-1/3" />
+                <div className="h-8 bg-neutral-200/40 dark:bg-neutral-800/40 rounded mt-1 w-full" />
+              </div>
+            </div>
           ))}
         </div>
       ) : filteredProducts.length > 0 ? (

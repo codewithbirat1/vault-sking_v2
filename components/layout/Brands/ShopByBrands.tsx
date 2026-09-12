@@ -32,6 +32,7 @@ const extraData = [
 
 const ShopByBrands = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -43,16 +44,18 @@ const ShopByBrands = () => {
         }));
 
         setBrands(data);
+        setIsLoading(false);
       },
       (error) => {
         console.error(error);
+        setIsLoading(false);
       },
     );
 
     return unsubscribe;
   }, []);
 
-  if (!brands?.length) return null;
+  if (!isLoading && !brands?.length) return null;
 
   return (
     <section className="w-full rounded-2xl bg-surface p-5 md:p-7">
@@ -67,7 +70,18 @@ const ShopByBrands = () => {
         </Link>
       </div>
 
-      <BrandCarousel brands={brands} />
+      {isLoading ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 animate-pulse">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-20 rounded-xl bg-neutral-200/80 dark:bg-neutral-800/80"
+            />
+          ))}
+        </div>
+      ) : (
+        <BrandCarousel brands={brands} />
+      )}
 
       <div className="mt-4 grid grid-cols-1 gap-6 border-t border-accent/90 pt-4 sm:grid-cols-2 lg:grid-cols-4">
         {extraData.map((item) => (

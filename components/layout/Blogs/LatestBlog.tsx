@@ -29,13 +29,16 @@ const LatestBlog = async () => {
           return (
             <div key={blog._id} className="rounded-lg overflow-hidden">
               {blog.mainImage && blog.mainImage.trim().length > 0 && (
-                <Link href={`/blog/${blog.slug.current}`}>
+                <Link
+                  href={`/blog/${blog.slug.current}`}
+                  className="relative block w-full aspect-16/10 overflow-hidden bg-neutral-100 dark:bg-neutral-800"
+                >
                   <Image
                     src={blog.mainImage}
-                    alt={blog.title ?? ""}
-                    width={250}
-                    height={250}
-                    className="w-full max-h-40 object-cover"
+                    alt={blog.title ?? "Blog image"}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    className="object-cover transition-transform duration-300 hover:scale-105"
                   />
                 </Link>
               )}

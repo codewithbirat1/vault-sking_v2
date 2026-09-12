@@ -89,19 +89,16 @@ export default function Checkout() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isSubmitting) {
-      setProgress(0);
-      interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 90) return prev;
-          const increment = Math.random() * 10 + 5;
-          return Math.min(prev + increment, 90);
-        });
-      }, 500);
-    } else {
-      setProgress(0);
-    }
+    if (!isSubmitting) return;
+
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 90) return prev;
+        const increment = Math.random() * 10 + 5;
+        return Math.min(prev + increment, 90);
+      });
+    }, 500);
+
     return () => clearInterval(interval);
   }, [isSubmitting]);
 
@@ -390,6 +387,7 @@ export default function Checkout() {
 
   const processOrder = async () => {
     setShowConfirmDialog(false);
+    setProgress(0);
     setIsSubmitting(true);
     try {
       let screenshotUrl = "";

@@ -1,9 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { useUser } from "@clerk/nextjs";
 
 import type { Product } from "@/lib/frontend-data";
+import { GUEST_CART_KEY } from "@/lib/localStorage";
 
 import {
   addGuestCartItem,
@@ -30,58 +37,74 @@ export interface CartItem {
   quantity: number;
 }
 
+let cachedGuestCartRaw: string | null | undefined = undefined;
+let cachedGuestCart: CartItem[] = [];
+
+const subscribeGuestCart = (callback: () => void) => {
+  window.addEventListener("guest_cart_updated", callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    window.removeEventListener("guest_cart_updated", callback);
+    window.removeEventListener("storage", callback);
+  };
+};
+
+const getGuestCartSnapshot = (): CartItem[] => {
+  if (typeof window === "undefined") return [];
+  const raw =
+    localStorage.getItem(GUEST_CART_KEY) ??
+    localStorage.getItem("guest_cart");
+  if (raw !== cachedGuestCartRaw) {
+    cachedGuestCartRaw = raw;
+    cachedGuestCart = getGuestCart();
+  }
+  return cachedGuestCart;
+};
+
+const getServerCartSnapshot = (): CartItem[] => [];
+
 export const useCart = () => {
-  const { user, isSignedIn } = useUser();
+  const { user, isSignedIn, isLoaded } = useUser();
 
-  // Initialize guest cart immediately instead of inside an effect
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    if (typeof window === "undefined") return [];
-    return getGuestCart();
-  });
+  const guestCart = useSyncExternalStore(
+    subscribeGuestCart,
+    getGuestCartSnapshot,
+    getServerCartSnapshot,
+  );
 
-  const [loading, setLoading] = useState(true);
+  const [firestoreCart, setFirestoreCart] = useState<CartItem[]>([]);
+  const [firestoreLoading, setFirestoreLoading] = useState(true);
 
   /**
    * Listen to Firestore when user signs in
    */
   useEffect(() => {
-    if (!isSignedIn || !user) {
-      const syncCart = () => setCart(getGuestCart());
-      window.addEventListener("guest_cart_updated", syncCart);
-      window.addEventListener("storage", syncCart);
-      
-      syncCart(); // initial sync
-      setLoading(false);
+    if (!isSignedIn || !user) return;
 
-      return () => {
-        window.removeEventListener("guest_cart_updated", syncCart);
-        window.removeEventListener("storage", syncCart);
-      };
-    }
+    let unsubscribe = () => {};
+    let cancelled = false;
 
-  let unsubscribe = () => {};
-  let cancelled = false;
+    (async () => {
+      await mergeGuestCart(user.id);
 
-  (async () => {
-    setLoading(true);
+      if (cancelled) return;
 
-    await mergeGuestCart(user.id);
+      unsubscribe = listenFirestoreCart(user.id, (items: CartItem[]) => {
+        if (!cancelled) {
+          setFirestoreCart(items);
+          setFirestoreLoading(false);
+        }
+      });
+    })();
 
-    if (cancelled) return;
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [isSignedIn, user]);
 
-    unsubscribe = listenFirestoreCart(user.id, (items: CartItem[]) => {
-      if (!cancelled) {
-        setCart(items);
-        setLoading(false);
-      }
-    });
-  })();
-
-  return () => {
-    cancelled = true;
-    unsubscribe();
-  };
-}, [isSignedIn, user]);
+  const cart = isSignedIn && user ? firestoreCart : guestCart;
+  const loading = !isLoaded || (Boolean(isSignedIn && user) && firestoreLoading);
 
   const addToCart = useCallback(
     async (product: Product) => {
@@ -90,7 +113,7 @@ export const useCart = () => {
         return;
       }
 
-      setCart(addGuestCartItem(product));
+      addGuestCartItem(product);
     },
     [isSignedIn, user],
   );
@@ -102,7 +125,7 @@ export const useCart = () => {
         return;
       }
 
-      setCart(increaseGuestQuantity(productId));
+      increaseGuestQuantity(productId);
     },
     [isSignedIn, user],
   );
@@ -114,7 +137,7 @@ export const useCart = () => {
         return;
       }
 
-      setCart(decreaseGuestQuantity(productId));
+      decreaseGuestQuantity(productId);
     },
     [isSignedIn, user],
   );
@@ -126,7 +149,7 @@ export const useCart = () => {
         return;
       }
 
-      setCart(removeGuestCartItem(productId));
+      removeGuestCartItem(productId);
     },
     [isSignedIn, user],
   );
@@ -138,7 +161,6 @@ export const useCart = () => {
     }
 
     clearGuestCart();
-    setCart([]);
   }, [isSignedIn, user]);
 
   const cartCount = useMemo(

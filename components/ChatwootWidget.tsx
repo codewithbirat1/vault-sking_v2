@@ -6,7 +6,7 @@ export const ChatwootWidget = () => {
   return (
     <Script
       id="chatwoot"
-      strategy="afterInteractive"
+      strategy="lazyOnload"
       dangerouslySetInnerHTML={{
         __html: `
           (function(d,t) {

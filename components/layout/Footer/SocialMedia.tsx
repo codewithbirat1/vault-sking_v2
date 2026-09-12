@@ -1,4 +1,4 @@
-import { FaFacebookF, FaInstagram, FaTiktok } from "react-icons/fa";
+import { FaFacebookF, FaInstagram, FaTiktok } from "@/components/icons/SocialIcons";
 import Link from "next/link";
 
 import {
