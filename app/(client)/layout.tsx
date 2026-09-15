@@ -1,3 +1,5 @@
+export const revalidate = 0;
+
 import Navbar from "@/components/layout/Navbar/Navbar";
 import "../globals.css";
 import FooterWrapper from "@/components/layout/Footer/FooterWrapper";
@@ -17,3 +19,4 @@ export default function RootLayout({
     </div>
   );
 }
+

@@ -1,5 +1,10 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/config/firebase.config";
 import type { Announcement } from "@/lib/frontend-data";
 
 interface AnnouncementBarProps {
@@ -7,26 +12,46 @@ interface AnnouncementBarProps {
 }
 
 const hardcodedPromo = {
-  href: "/offers",
+  href: "/shop",
   cta: "Shop Now",
 } as const;
 
 export default function AnnouncementBar({
   initialAnnouncement,
 }: AnnouncementBarProps) {
-  if (!initialAnnouncement?.text) {
+  const [announcement, setAnnouncement] = useState<Announcement | null>(
+    initialAnnouncement ?? null
+  );
+
+  useEffect(() => {
+    const unsub = onSnapshot(
+      doc(db, "announcements", "active"),
+      (snap) => {
+        if (snap.exists()) {
+          setAnnouncement(snap.data() as Announcement);
+        }
+      },
+      (error) => {
+        console.error("Error listening to announcement updates:", error);
+      }
+    );
+
+    return () => unsub();
+  }, []);
+
+  if (!announcement?.text) {
     return <div aria-hidden="true" />;
   }
 
   return (
     <p className="flex items-center justify-center gap-1.5 font-medium whitespace-nowrap">
       <span>
-        {initialAnnouncement.emoji && (
+        {announcement.emoji && (
           <span aria-hidden="true" className="mr-1">
-            {initialAnnouncement.emoji}
+            {announcement.emoji}
           </span>
         )}
-        {initialAnnouncement.text}
+        {announcement.text}
       </span>
       <Link
         href={hardcodedPromo.href}

@@ -1,5 +1,5 @@
 import { db } from "@/config/firebase.config";
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, getDocFromServer } from "firebase/firestore";
 
 export type ProductImage = {
   src?: string;
@@ -420,12 +420,19 @@ export async function getBlogCategories(): Promise<Array<{ title: string }>> {
 
 export async function getActiveAnnouncement(): Promise<Announcement> {
   try {
-    const snap = await getDoc(doc(db, "announcements", "active"));
+    const snap = await getDocFromServer(doc(db, "announcements", "active"));
     if (snap.exists()) {
       return snap.data() as Announcement;
     }
   } catch {
-    // fall through to default
+    try {
+      const snap = await getDoc(doc(db, "announcements", "active"));
+      if (snap.exists()) {
+        return snap.data() as Announcement;
+      }
+    } catch {
+      // fall through to default
+    }
   }
   return announcement;
 }

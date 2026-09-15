@@ -7,6 +7,7 @@ import QuantityButtons from "@/components/layout/Products/QuantityButtons";
 import Title from "@/components/layout/Products/Title";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import ConfirmDeleteModal from "@/components/layout/Products/ConfirmDeleteModal";
 import { useCart } from "@/hooks/useCart";
 import { cn } from "@/lib/utils";
 import { CartProduct, getCartProducts } from "@/utils/cartHelper";
@@ -17,9 +18,155 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
-
 import { useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { productCategories } from "@/constants/data";
+import { db } from "@/config/firebase.config";
+import { collection, onSnapshot } from "firebase/firestore";
+
+const CATEGORY_STYLES: Record<string, { label: string; className: string }> = {
+  serum: {
+    label: "Serum",
+    className: "bg-purple-50 text-purple-700 border-purple-200/60",
+  },
+  serums: {
+    label: "Serum",
+    className: "bg-purple-50 text-purple-700 border-purple-200/60",
+  },
+  "face-wash": {
+    label: "Face Wash",
+    className: "bg-sky-50 text-sky-700 border-sky-200/60",
+  },
+  facewash: {
+    label: "Face Wash",
+    className: "bg-sky-50 text-sky-700 border-sky-200/60",
+  },
+  moisturizer: {
+    label: "Moisturizer",
+    className: "bg-emerald-50 text-emerald-700 border-emerald-200/60",
+  },
+  moisturizers: {
+    label: "Moisturizer",
+    className: "bg-emerald-50 text-emerald-700 border-emerald-200/60",
+  },
+  "sunscreen-and-sunstick": {
+    label: "Sunscreen & Sunstick",
+    className: "bg-amber-50 text-amber-700 border-amber-200/60",
+  },
+  sunscreen: {
+    label: "Sunscreen",
+    className: "bg-amber-50 text-amber-700 border-amber-200/60",
+  },
+  sunscreens: {
+    label: "Sunscreen",
+    className: "bg-amber-50 text-amber-700 border-amber-200/60",
+  },
+  "face-mask": {
+    label: "Face Mask",
+    className: "bg-rose-50 text-rose-700 border-rose-200/60",
+  },
+  "face-masks": {
+    label: "Face Mask",
+    className: "bg-rose-50 text-rose-700 border-rose-200/60",
+  },
+  "lip-balm": {
+    label: "Lip Balm",
+    className: "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200/60",
+  },
+  toners: {
+    label: "Toner",
+    className: "bg-indigo-50 text-indigo-700 border-indigo-200/60",
+  },
+  toner: {
+    label: "Toner",
+    className: "bg-indigo-50 text-indigo-700 border-indigo-200/60",
+  },
+  others: {
+    label: "Others",
+    className: "bg-slate-100 text-slate-700 border-slate-200/60",
+  },
+};
+
+const COLOR_PALETTES = [
+  "bg-purple-50 text-purple-700 border-purple-200/60",
+  "bg-sky-50 text-sky-700 border-sky-200/60",
+  "bg-emerald-50 text-emerald-700 border-emerald-200/60",
+  "bg-amber-50 text-amber-700 border-amber-200/60",
+  "bg-rose-50 text-rose-700 border-rose-200/60",
+  "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200/60",
+  "bg-indigo-50 text-indigo-700 border-indigo-200/60",
+  "bg-teal-50 text-teal-700 border-teal-200/60",
+  "bg-orange-50 text-orange-700 border-orange-200/60",
+  "bg-cyan-50 text-cyan-700 border-cyan-200/60",
+];
+
+function getCategoryBadgeInfo(
+  categoryRaw?: string,
+  categoryMap: Record<string, { title: string; slug?: string }> = {},
+) {
+  if (!categoryRaw || typeof categoryRaw !== "string") return null;
+
+  // 1. Resolve Firestore category ID to actual category title
+  const categoryObject = categoryMap[categoryRaw];
+  let categoryTitle = categoryObject?.title;
+
+  if (!categoryTitle) {
+    const foundEntry = Object.values(categoryMap).find(
+      (cat) =>
+        cat.slug === categoryRaw ||
+        cat.title.toLowerCase() === categoryRaw.toLowerCase(),
+    );
+    if (foundEntry) {
+      categoryTitle = foundEntry.title;
+    }
+  }
+
+  const resolvedName = categoryTitle || categoryRaw;
+
+  // If resolvedName is an unresolved raw Firestore document ID (e.g. alphanumeric string like emsQng1o3KYwMTIRvgOZ with no spaces/hyphens), wait for categoryMap to load
+  const isRawId = /^[A-Za-z0-9]{15,30}$/.test(resolvedName) && !categoryTitle;
+  if (isRawId) {
+    return null;
+  }
+
+  const rawLower = resolvedName.toLowerCase().trim();
+  const normalizedKey = rawLower.replace(/[\s-_]+/g, "-");
+
+  if (CATEGORY_STYLES[rawLower]) {
+    return CATEGORY_STYLES[rawLower];
+  }
+  if (CATEGORY_STYLES[normalizedKey]) {
+    return CATEGORY_STYLES[normalizedKey];
+  }
+
+  const matchedCat = productCategories.find(
+    (c) =>
+      c.value.toLowerCase() === rawLower ||
+      c.title.toLowerCase() === rawLower ||
+      c.value.toLowerCase() === normalizedKey,
+  );
+
+  let label = matchedCat ? matchedCat.title : resolvedName;
+
+  if (!matchedCat && (label.includes("-") || label.includes("_"))) {
+    label = label
+      .replace(/[-_]+/g, " ")
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  } else if (!matchedCat && label === rawLower) {
+    label = label.charAt(0).toUpperCase() + label.slice(1);
+  }
+
+  let hash = 0;
+  for (let i = 0; i < rawLower.length; i++) {
+    hash = rawLower.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const colorIndex = Math.abs(hash) % COLOR_PALETTES.length;
+  const className = COLOR_PALETTES[colorIndex];
+
+  return { label, className };
+}
 
 interface OrderSummaryContentProps {
   cartProducts: CartProduct[];
@@ -64,21 +211,54 @@ const OrderSummaryContent = ({ cartProducts }: OrderSummaryContentProps) => {
 
 const CartPage = () => {
   const router = useRouter();
-  const { isLoaded } = useUser();
+  const { isSignedIn } = useUser();
   const { cart, removeFromCart, clearCart, loading } = useCart();
   const [cartProducts, setCartProducts] = useState<CartProduct[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
-  const prevCartRef = useRef(cart);
+  const [categoryMap, setCategoryMap] = useState<Record<string, { title: string; slug?: string }>>({});
+  const prevCartRef = useRef<typeof cart>([]);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, "categories"),
+      (snapshot) => {
+        const map: Record<string, { title: string; slug?: string }> = {};
+        snapshot.docs.forEach((doc) => {
+          const data = doc.data();
+          map[doc.id] = {
+            title: data.title || data.name || doc.id,
+            slug: typeof data.slug === "string" ? data.slug : data.slug?.current,
+          };
+        });
+        setCategoryMap(map);
+      },
+      (err) => console.error("Error fetching categories map:", err),
+    );
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     let isCurrent = true;
     const load = async () => {
-      const prevIds = prevCartRef.current.map(c => c.productId).sort().join(',');
-      const currentIds = cart.map(c => c.productId).sort().join(',');
+      if (cart.length === 0) {
+        if (isCurrent) {
+          setCartProducts([]);
+          setLoadingProducts(false);
+          prevCartRef.current = [];
+        }
+        return;
+      }
 
-      if (prevIds === currentIds && prevCartRef.current.length > 0) {
+      const prevIds = prevCartRef.current.map((c) => c.productId).sort().join(",");
+      const currentIds = cart.map((c) => c.productId).sort().join(",");
+
+      if (
+        cartProducts.length > 0 &&
+        cartProducts.length === cart.length &&
+        prevIds === currentIds
+      ) {
         // Only quantities changed (or no changes)
-        setCartProducts((prev) => 
+        setCartProducts((prev) =>
           prev.map((p) => {
             const cartItem = cart.find((c) => c.productId === p._id);
             return cartItem ? { ...p, quantity: cartItem.quantity } : p;
@@ -86,6 +266,21 @@ const CartPage = () => {
         );
         prevCartRef.current = cart;
         setLoadingProducts(false);
+        return;
+      }
+
+      const allHasProduct = cart.every((c) => c.product);
+      if (allHasProduct) {
+        const instantProducts: CartProduct[] = cart.map((item) => ({
+          ...item.product!,
+          _id: item.productId,
+          quantity: item.quantity,
+        }));
+        if (isCurrent) {
+          setCartProducts(instantProducts);
+          setLoadingProducts(false);
+          prevCartRef.current = cart;
+        }
         return;
       }
 
@@ -102,19 +297,43 @@ const CartPage = () => {
     return () => {
       isCurrent = false;
     };
-  }, [cart]);
+  }, [cart, cartProducts.length]);
 
-  const handleClearCart = async () => {
+  const [itemToDelete, setItemToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isClearCartModalOpen, setIsClearCartModalOpen] = useState(false);
+
+  const handleClearCart = () => {
+    setIsClearCartModalOpen(true);
+  };
+
+  const confirmClearCart = async () => {
     try {
       await clearCart();
       toast.success("Cart cleared successfully");
     } catch (error) {
       console.error(error);
       toast.error("Failed to clear cart");
+    } finally {
+      setIsClearCartModalOpen(false);
     }
   };
 
-  if (!isLoaded || loading || loadingProducts) {
+  const confirmRemoveItem = async () => {
+    if (!itemToDelete) return;
+    try {
+      await removeFromCart(itemToDelete.id);
+      toast.success(`${itemToDelete.name} removed from cart`);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to remove item");
+    } finally {
+      setItemToDelete(null);
+    }
+  };
+
+  const isCartLoading = (isSignedIn && loading) || (cart.length > 0 && loadingProducts && cartProducts.length === 0);
+
+  if (isCartLoading) {
     return (
       <div className="pb-20">
         <Container>
@@ -194,6 +413,24 @@ const CartPage = () => {
                             </span>
                           )}
 
+                          {(() => {
+                            const badgeInfo = getCategoryBadgeInfo(
+                              product?.category,
+                              categoryMap,
+                            );
+                            if (!badgeInfo) return null;
+                            return (
+                              <span
+                                className={cn(
+                                  "inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] sm:text-[11px] font-medium",
+                                  badgeInfo.className,
+                                )}
+                              >
+                                {badgeInfo.label}
+                              </span>
+                            );
+                          })()}
+
                           {product?.status && (
                             <span
                               className={cn(
@@ -214,17 +451,12 @@ const CartPage = () => {
                         <div className="flex items-center justify-between gap-2 flex-wrap mt-2 sm:mt-0">
                           <button
                             type="button"
-                            onClick={async () => {
-                              try {
-                                await removeFromCart(product._id);
-                                toast.success(
-                                  `${product.name} removed from cart`,
-                                );
-                              } catch (error) {
-                                console.error(error);
-                                toast.error("Failed to remove item");
-                              }
-                            }}
+                            onClick={() =>
+                              setItemToDelete({
+                                id: product._id,
+                                name: product.name,
+                              })
+                            }
                             aria-label="Remove product"
                             className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 hover:text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200 hover:scale-105 cursor-pointer"
                           >
@@ -245,12 +477,31 @@ const CartPage = () => {
                     onClick={handleClearCart}
                     variant="outline"
                     size="sm"
-                    className="h-8 px-3 text-xs font-medium text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                    className="h-8 px-3 text-xs font-medium text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 cursor-pointer"
                   >
                     Clear Cart
                   </Button>
                 </div>
               </div>
+
+              {/* Confirmation Modals */}
+              <ConfirmDeleteModal
+                isOpen={!!itemToDelete}
+                onClose={() => setItemToDelete(null)}
+                onConfirm={confirmRemoveItem}
+                title="Remove Item from Cart?"
+                description={`Are you sure you want to remove "${itemToDelete?.name}" from your shopping cart?`}
+                confirmText="Remove Item"
+              />
+
+              <ConfirmDeleteModal
+                isOpen={isClearCartModalOpen}
+                onClose={() => setIsClearCartModalOpen(false)}
+                onConfirm={confirmClearCart}
+                title="Clear Entire Cart?"
+                description="Are you sure you want to remove all items from your shopping cart? This action cannot be undone."
+                confirmText="Clear Cart"
+              />
 
               <div className="sticky top-24 space-y-5 self-start">
                 <div className="bg-white p-6 rounded-xl border shadow-sm">

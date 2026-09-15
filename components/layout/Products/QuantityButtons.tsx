@@ -25,12 +25,11 @@ const QuantityButtons = ({ product, className }: Props) => {
   const handleRemoveProduct = async () => {
     try {
       await decreaseQuantity(product._id);
-
-      if (itemCount > 1) {
-        toast.success("Quantity decreased");
-      } else {
-        toast.success("Item removed from cart");
-      }
+      toast.success(
+        itemCount <= 1
+          ? `${product.name} removed from cart`
+          : "Quantity decreased",
+      );
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong");
@@ -59,7 +58,7 @@ const QuantityButtons = ({ product, className }: Props) => {
         variant="outline"
         size="icon"
         disabled={itemCount === 0 || isOutOfStock}
-        className="w-6 h-6 border hover:bg-bg/70"
+        className="w-6 h-6 border hover:bg-bg/70 cursor-pointer"
       >
         <Minus />
       </Button>
@@ -73,7 +72,7 @@ const QuantityButtons = ({ product, className }: Props) => {
         variant="outline"
         size="icon"
         disabled={isOutOfStock}
-        className="w-6 h-6 border hover:bg-bg/70"
+        className="w-6 h-6 border hover:bg-bg/70 cursor-pointer"
       >
         <Plus />
       </Button>

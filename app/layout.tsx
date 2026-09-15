@@ -1,11 +1,9 @@
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next"
-import { Toaster } from "react-hot-toast";
+import { ToastProvider } from "@/components/ui/ToastProvider";
 import Providers from "./providers";
-import { DevAgentation } from "@/components/DevAgentation";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ChatwootWidget } from "@/components/ChatwootWidget";
-import Script from "next/script";
 
 const font = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -48,24 +46,10 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
           <Providers>{children}</Providers>
         </ClerkProvider>
 
-        <Toaster
-          position="bottom-center"
-          toastOptions={{
-            style: {
-              background: "#000000",
-              color: "#fff",
-            },
-          }}
-        />
-        <DevAgentation />
+        <ToastProvider />
+
         <ChatwootWidget />
-        <Script
-          id="Cookiebot"
-          src="https://consent.cookiebot.com/uc.js"
-          data-cbid="ae4e65e4-8ec5-4a80-a503-172b15ffc381"
-          data-blockingmode="auto"
-          strategy="lazyOnload"
-        />
+
         <Analytics />
       </body>
     </html>

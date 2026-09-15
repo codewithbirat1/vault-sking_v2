@@ -35,6 +35,7 @@ import { mergeGuestCart } from "@/lib/cartSync";
 export interface CartItem {
   productId: string;
   quantity: number;
+  product?: Product;
 }
 
 let cachedGuestCartRaw: string | null | undefined = undefined;
@@ -66,7 +67,7 @@ const getGuestCartSnapshot = (): CartItem[] => {
 const getServerCartSnapshot = (): CartItem[] => emptyServerCart;
 
 export const useCart = () => {
-  const { user, isSignedIn, isLoaded } = useUser();
+  const { user, isSignedIn } = useUser();
 
   const guestCart = useSyncExternalStore(
     subscribeGuestCart,
@@ -106,12 +107,24 @@ export const useCart = () => {
   }, [isSignedIn, user]);
 
   const cart = isSignedIn && user ? firestoreCart : guestCart;
-  const loading = !isLoaded || (Boolean(isSignedIn && user) && firestoreLoading);
+  const loading = Boolean(isSignedIn && user && firestoreLoading);
 
   const addToCart = useCallback(
-    async (product: Product) => {
+    (product: Product) => {
       if (isSignedIn && user) {
-        await addFirestoreCartItem(user.id, product);
+        setFirestoreCart((prev) => {
+          const existing = prev.find((item) => item.productId === product._id);
+          if (existing) {
+            return prev.map((item) =>
+              item.productId === product._id
+                ? { ...item, quantity: item.quantity + 1 }
+                : item,
+            );
+          }
+          return [...prev, { productId: product._id, quantity: 1 }];
+        });
+        
+        addFirestoreCartItem(user.id, product).catch(console.error);
         return;
       }
 
@@ -121,9 +134,16 @@ export const useCart = () => {
   );
 
   const increaseQuantity = useCallback(
-    async (productId: string) => {
+    (productId: string) => {
       if (isSignedIn && user) {
-        await increaseFirestoreQuantity(user.id, productId);
+        setFirestoreCart((prev) =>
+          prev.map((item) =>
+            item.productId === productId
+              ? { ...item, quantity: item.quantity + 1 }
+              : item,
+          ),
+        );
+        increaseFirestoreQuantity(user.id, productId).catch(console.error);
         return;
       }
 
@@ -133,9 +153,16 @@ export const useCart = () => {
   );
 
   const decreaseQuantity = useCallback(
-    async (productId: string) => {
+    (productId: string) => {
       if (isSignedIn && user) {
-        await decreaseFirestoreQuantity(user.id, productId);
+        setFirestoreCart((prev) =>
+          prev.map((item) =>
+            item.productId === productId && item.quantity > 1
+              ? { ...item, quantity: item.quantity - 1 }
+              : item,
+          ),
+        );
+        decreaseFirestoreQuantity(user.id, productId).catch(console.error);
         return;
       }
 
@@ -145,9 +172,12 @@ export const useCart = () => {
   );
 
   const removeFromCart = useCallback(
-    async (productId: string) => {
+    (productId: string) => {
       if (isSignedIn && user) {
-        await removeFirestoreCartItem(user.id, productId);
+        setFirestoreCart((prev) =>
+          prev.filter((item) => item.productId !== productId),
+        );
+        removeFirestoreCartItem(user.id, productId).catch(console.error);
         return;
       }
 
@@ -156,9 +186,10 @@ export const useCart = () => {
     [isSignedIn, user],
   );
 
-  const clearCart = useCallback(async () => {
+  const clearCart = useCallback(() => {
     if (isSignedIn && user) {
-      await clearFirestoreCart(user.id);
+      setFirestoreCart([]);
+      clearFirestoreCart(user.id).catch(console.error);
       return;
     }
 

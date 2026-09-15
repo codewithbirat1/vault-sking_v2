@@ -13,6 +13,7 @@ import { Product } from "@/data/products";
 export interface CartItem {
   productId: string;
   quantity: number;
+  product?: Product;
 }
 
 export interface CartProduct extends Product {
@@ -24,21 +25,52 @@ export const getCartProducts = async (
 ): Promise<CartProduct[]> => {
   if (cart.length === 0) return [];
 
-  const ids = cart.map((item) => item.productId);
+  const cachedProductsMap = new Map<string, Product>();
+  const missingIds: string[] = [];
 
-  const q = query(collection(db, "products"), where(documentId(), "in", ids));
+  for (const item of cart) {
+    if (item.product && (item.product._id || item.product.id)) {
+      cachedProductsMap.set(item.productId, item.product);
+    } else {
+      missingIds.push(item.productId);
+    }
+  }
 
-  const snapshot = await getDocs(q);
+  if (missingIds.length > 0) {
+    try {
+      const fetchPromise = (async () => {
+        const q = query(
+          collection(db, "products"),
+          where(documentId(), "in", missingIds),
+        );
+        const snapshot = await getDocs(q);
+        snapshot.docs.forEach((doc) => {
+          const product = doc.data() as Omit<Product, "_id">;
+          cachedProductsMap.set(doc.id, {
+            ...product,
+            _id: doc.id,
+          });
+        });
+      })();
 
-  return snapshot.docs.map((doc) => {
-    const product = doc.data() as Omit<Product, "_id">;
+      const timeoutPromise = new Promise((resolve) =>
+        setTimeout(resolve, 2500)
+      );
+      await Promise.race([fetchPromise, timeoutPromise]);
+    } catch (err) {
+      console.error("Error fetching cart products from Firestore:", err);
+    }
+  }
 
-    const cartItem = cart.find((item) => item.productId === doc.id);
-
-    return {
-      ...product,
-      _id: doc.id,
-      quantity: cartItem?.quantity ?? 1,
-    };
-  });
+  return cart
+    .map((item) => {
+      const product = cachedProductsMap.get(item.productId);
+      if (!product) return null;
+      return {
+        ...product,
+        _id: item.productId,
+        quantity: item.quantity,
+      };
+    })
+    .filter((p): p is CartProduct => p !== null);
 };

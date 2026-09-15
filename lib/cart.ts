@@ -7,6 +7,7 @@ import { GUEST_CART_KEY } from "./localStorage";
 export interface CartItem {
   productId: string;
   quantity: number;
+  product?: Product;
 }
 
 const CART_KEY = GUEST_CART_KEY;
@@ -54,10 +55,12 @@ export const addGuestCartItem = (product: Product) => {
 
   if (existing) {
     existing.quantity += 1;
+    existing.product = product;
   } else {
     cart.push({
       productId: product._id,
       quantity: 1,
+      product: product,
     });
   }
 

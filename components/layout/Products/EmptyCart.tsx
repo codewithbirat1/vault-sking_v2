@@ -1,4 +1,5 @@
 "use client";
+
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { m } from "framer-motion";
@@ -7,66 +8,40 @@ import Image from "next/image";
 
 export default function EmptyCart() {
   return (
-    <div className="py-10 md:py-20 - from-blue-50 to-white flex items-center justify-center p-4">
+    <div className="flex min-h-[calc(100vh-160px)] items-center justify-center px-4 py-6">
       <m.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full space-y-8"
+        transition={{ duration: 0.3 }}
+        className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-sm sm:p-8"
       >
-        <m.div
-          animate={{
-            scale: [1, 1.1, 1],
-            rotate: [0, 5, -5, 0],
-          }}
-          transition={{
-            repeat: Infinity,
-            duration: 5,
-            ease: "easeInOut",
-          }}
-          className="relative w-48 h-48 mx-auto"
-        >
+        <div className="relative mx-auto mb-5 h-36 w-36 sm:h-40 sm:w-40">
           <Image
             src={emptyCart}
             alt="Empty shopping cart"
-            layout="fill"
-            objectFit="contain"
-            className="drop-shadow-lg"
+            fill
+            sizes="160px"
+            className="object-contain"
+            priority
           />
-          <m.div
-            animate={{
-              x: [0, -10, 10, 0],
-              y: [0, -5, 5, 0],
-            }}
-            transition={{
-              repeat: Infinity,
-              duration: 3,
-              ease: "linear",
-            }}
-            className="absolute -top-4 -right-4 bg-blue-500 rounded-full p-2"
-          >
-            <ShoppingCart size={24} className="text-white" />
-          </m.div>
-        </m.div>
-
-        <div className="text-center space-y-4">
-          <h2 className="text-3xl font-bold text-gray-800">
-            Your cart is feeling lonely
-          </h2>
-          <p className="text-gray-600">
-            It looks like you haven&apos;t added anything to your cart yet.
-            Let&apos;s change that and find some amazing products for you!
-          </p>
         </div>
 
-        <div>
-          <Link
-            href="/"
-            className="block bg-primary/5 border border-border/20 text-center py-2.5 rounded-full text-sm font-semibold tracking-wide hover:border-border hover:bg-border hover:text-white hoverEffect"
-          >
-            Discover Products
-          </Link>
-        </div>
+        <h2 className="text-xl font-semibold text-gray-800 sm:text-2xl">
+          Your Cart is Empty
+        </h2>
+
+        <p className="mx-auto mt-2 max-w-xs text-sm leading-5 text-gray-500">
+          You haven&apos;t added anything to your cart yet. Explore our
+          products and find something you&apos;ll love.
+        </p>
+
+        <Link
+          href="/"
+          className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+        >
+          <ShoppingCart className="h-4 w-4" />
+          Discover Products
+        </Link>
       </m.div>
     </div>
   );

@@ -35,6 +35,7 @@ import { mergeGuestCart } from "@/features/cart/services/cartSync";
 export interface CartItem {
   productId: string;
   quantity: number;
+  product?: Product;
 }
 
 let cachedGuestCartRaw: string | null | undefined = undefined;
@@ -64,7 +65,7 @@ const getGuestCartSnapshot = (): CartItem[] => {
 const getServerCartSnapshot = (): CartItem[] => [];
 
 export const useCart = () => {
-  const { user, isSignedIn, isLoaded } = useUser();
+  const { user, isSignedIn } = useUser();
 
   const guestCart = useSyncExternalStore(
     subscribeGuestCart,
@@ -104,7 +105,7 @@ export const useCart = () => {
   }, [isSignedIn, user]);
 
   const cart = isSignedIn && user ? firestoreCart : guestCart;
-  const loading = !isLoaded || (Boolean(isSignedIn && user) && firestoreLoading);
+  const loading = Boolean(isSignedIn && user && firestoreLoading);
 
   const addToCart = useCallback(
     async (product: Product) => {
