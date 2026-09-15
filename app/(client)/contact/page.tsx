@@ -110,10 +110,10 @@ export default function ContactSection() {
               
               <ContactItem icon={<Mail className="w-5 h-5" />} label="Email">
                 <a
-                  href="mailto:support@vault-enterprises.com"
+                  href="mailto:vaultskinco@gmail.com"
                   className="hover:text-accent transition-colors break-all"
                 >
-                  support@vaultskin.com
+                  vaultskinco@gmail.com
                 </a>
               </ContactItem>
 

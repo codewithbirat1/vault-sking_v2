@@ -404,7 +404,7 @@ const OrderDetailClient = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Mail className="h-3.5 w-3.5" />
-                    <span>support@vaultskin.com.np</span>
+                    <span>vaultskinco@gmail.com</span>
                   </div>
                 </div>
               </div>

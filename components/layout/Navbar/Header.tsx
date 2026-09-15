@@ -4,7 +4,7 @@ import { getActiveAnnouncement } from "@/lib/frontend-data";
 import AnnouncementBar from "./AnnouncementBar";
 
 const contacts = [
-  { type: "email", label: "info@vaultskin.co", href: "mailto:info@vaultskin.co", Icon: Mail },
+  { type: "email", label: "vaultskinco@gmail.com", href: "mailto:vaultskinco@gmail.com", Icon: Mail },
   { type: "phone", label: "+977 9840320862", href: "tel:+9779840320862", Icon: Phone },
 ] as const;
 

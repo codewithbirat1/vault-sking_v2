@@ -31,7 +31,7 @@ const data: ContactItemData[] = [
   },
   {
     title: "Email Us",
-    subtitle: "contact@vaultskin.com.np",
+    subtitle: "vaultskinco@gmail.com",
     icon: (
       <Mail className="h-6 w-6 shrink-0 text-primary group-hover:text-accent transition-colors" />
     ),

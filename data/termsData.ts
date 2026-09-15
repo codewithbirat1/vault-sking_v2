@@ -306,7 +306,7 @@ export const termsData: LegalSectionData[] = [
     listItems: [
       {
         bold: "Email:",
-        text: " privacy@vault-enterprises.com",
+        text: " vaultskinco@gmail.com",
       },
       {
         bold: "Phone:",

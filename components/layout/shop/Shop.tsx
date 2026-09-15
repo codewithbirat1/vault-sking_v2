@@ -494,31 +494,33 @@ const Shop = ({ categories, brands }: Props) => {
         </div>
 
         {/* Mobile Top Bar */}
-        <div className="md:hidden flex items-center justify-between py-3 px-4 border border-border/40 bg-white rounded-xl mb-4 select-none">
-          <button type="button"
-            onClick={openMobileDrawer}
-            className="flex items-center gap-2 text-sm font-semibold text-primary py-2 px-3 border border-border/40 rounded-lg bg-gray-50/50 active:bg-gray-100 transition-colors cursor-pointer"
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            Filter {activeFiltersCount > 0 ? `(${activeFiltersCount})` : ""}
-          </button>
-
-          <div className="relative flex items-center gap-1.5 border border-border/40 rounded-lg px-3 py-2 bg-gray-50/50">
-            <ArrowUpDown className="w-3.5 h-3.5 text-text-muted" />
-            <select
-              value={selectedSort}
-              onChange={(e) => setSelectedSort(e.target.value)}
-              className="appearance-none bg-transparent pl-1 pr-4 py-0 text-sm font-semibold text-primary outline-none cursor-pointer hover:text-accent transition-colors"
+        <div className="md:hidden flex items-center justify-between gap-2 py-2.5 px-2.5 sm:px-4 border border-border/40 bg-white rounded-xl mb-4 select-none box-border overflow-hidden">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <button type="button"
+              onClick={openMobileDrawer}
+              className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-primary py-1.5 px-2.5 sm:px-3 border border-border/40 rounded-lg bg-gray-50/50 active:bg-gray-100 transition-colors cursor-pointer shrink-0"
             >
-              <option value="default">Sort ▼</option>
-              <option value="price-asc">Price: Low-High</option>
-              <option value="price-desc">Price: High-Low</option>
-              <option value="name-asc">Name: A-Z</option>
-              <option value="name-desc">Name: Z-A</option>
-            </select>
+              <SlidersHorizontal className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              Filter{activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ""}
+            </button>
+
+            <div className="relative flex items-center gap-1 border border-border/40 rounded-lg px-2 py-1.5 bg-gray-50/50 overflow-hidden shrink min-w-0">
+              <ArrowUpDown className="w-3.5 h-3.5 text-text-muted shrink-0" />
+              <select
+                value={selectedSort}
+                onChange={(e) => setSelectedSort(e.target.value)}
+                style={{ maxWidth: "60px" }}               className="appearance-none bg-transparent pl-0.5 pr-1 py-0 text-xs font-semibold text-primary outline-none cursor-pointer hover:text-accent transition-colors"
+              >
+                <option value="default">Sort</option>
+                <option value="price-asc">Low-High</option>
+                <option value="price-desc">High-Low</option>
+                <option value="name-asc">A-Z</option>
+                <option value="name-desc">Z-A</option>
+              </select>
+            </div>
           </div>
 
-          <span className="text-xs font-semibold text-text-muted">
+          <span className=" ml-1 text-xs font-semibold text-text-muted whitespace-nowrap shrink-0">
             {sortedProducts.length}{" "}
             {sortedProducts.length === 1 ? "Product" : "Products"}
           </span>

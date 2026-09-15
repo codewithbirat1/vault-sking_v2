@@ -347,7 +347,7 @@ export const privacyPolicyData: LegalSectionData[] = [
     listItems: [
       {
         bold: "Email:",
-        text: " privacy@vault-enterprises.com",
+        text: " vaultskinco@gmail.com",
       },
       {
         bold: "Phone:",
