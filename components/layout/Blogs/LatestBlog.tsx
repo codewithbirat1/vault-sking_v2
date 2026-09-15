@@ -15,7 +15,7 @@ const LatestBlog = async () => {
         <Title className="text-accent">Latest Blogs</Title>
 
         <Link
-          href="/blogs"
+          href="/blog"
           className="text-sm font-semibold tracking-wide transition-colors hover:text-primary"
         >
           View all
