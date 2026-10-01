@@ -75,7 +75,7 @@ export const metadata = {
       "VaultSkin – Skincare & Beauty Products in Nepal | Quality Skincare",
 
     description:
-      "Discover authentic skincare and beauty products in Nepal at VaultSkin. Explore sunscreens, serums, moisturizers, face washes, masks and more.",
+      "Discover authentic skincare and beauty products in Nepal at VaultSkin. Explore sunscreens, serums, moisturizers, face washes, masks and more skincare products.",
 
     url: baseUrl,
 
