@@ -12,7 +12,7 @@ const font = Plus_Jakarta_Sans({
 });
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
-  ? `https://${process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")}`
+  ? process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")
   : "https://vaultskin.co";
 
 export const metadata = {
@@ -88,9 +88,7 @@ export const metadata = {
 
     images: [
       {
-        url: "/Images/logo.svg",
-        width: 1200,
-        height: 630,
+        url: "/Images/seo/favicon-32x32.png",
         alt: "VaultSkin – Skincare & Beauty Products in Nepal",
       },
     ],
@@ -99,8 +97,7 @@ export const metadata = {
   twitter: {
     card: "summary_large_image",
 
-    title:
-      "VaultSkin – Skincare & Beauty Products in Nepal",
+    title: "VaultSkin – Skincare & Beauty Products in Nepal",
 
     description:
       "Discover authentic skincare and beauty products from trusted brands at VaultSkin.",
@@ -115,6 +112,44 @@ export const metadata = {
   },
 };
 
+
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": `${baseUrl}/#organization`,
+
+  name: "VaultSkin",
+
+  url: baseUrl,
+
+  logo: {
+    "@type": "ImageObject",
+    url: `${baseUrl}/Images/logo.svg`,
+  },
+};
+
+
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${baseUrl}/#website`,
+
+  name: "VaultSkin",
+
+  url: baseUrl,
+
+  description:
+    "Skincare and beauty products in Nepal from SkinInspired and other trusted brands.",
+
+  publisher: {
+    "@id": `${baseUrl}/#organization`,
+  },
+
+  inLanguage: "en-NP",
+};
+
 const RootLayout = ({
   children,
 }: {
@@ -126,6 +161,24 @@ const RootLayout = ({
       className={font.variable}
       data-scroll-behavior="smooth"
     >
+      <head>
+        {/* Organization Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
+        />
+
+        {/* Website Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(websiteSchema),
+          }}
+        />
+      </head>
+
       <body
         className="font-poppins antialiased"
         suppressHydrationWarning={true}
