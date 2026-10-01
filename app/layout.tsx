@@ -25,22 +25,22 @@ export const metadata = {
   },
 
   description:
-    "Discover authentic skincare and beauty products in Nepal at VaultSkin. Explore sunscreens, serums, moisturizers, face washes, masks and more from trusted brands.",
+    "Discover skincare and beauty products at VaultSkin, featuring SkinInspired and trusted brands. Shop quality sunscreen, serums, moisturizers and more in Nepal.",
 
   keywords: [
     "skincare products Nepal",
     "beauty products Nepal",
+    "VaultSkin Nepal",
+    "SkinInspired Nepal",
     "skincare store Nepal",
     "skincare shop Nepal",
-    "cosmetics Nepal",
-    "cosmetics store Nepal",
-    "authentic skincare products Nepal",
     "beauty store Nepal",
+    "cosmetics Nepal",
     "sunscreen Nepal",
     "serum Nepal",
     "moisturizer Nepal",
     "face wash Nepal",
-    "face mask Nepal",
+    "SkinInspired products",
     "Korean skincare Nepal",
   ],
 
@@ -75,7 +75,7 @@ export const metadata = {
       "VaultSkin – Skincare & Beauty Products in Nepal | Quality Skincare",
 
     description:
-      "Discover authentic skincare and beauty products in Nepal at VaultSkin. Explore sunscreens, serums, moisturizers, face washes, masks and more skincare products.",
+      "Discover skincare and beauty products at VaultSkin, featuring SkinInspired and trusted brands. Shop quality sunscreen, serums, moisturizers and more in Nepal.",
 
     url: baseUrl,
 
