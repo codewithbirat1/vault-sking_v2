@@ -20,7 +20,7 @@ export const metadata = {
 
   title: {
     default:
-      "VaultSkin – Skincare & Beauty Products in Nepal | Authentic Products",
+      "VaultSkin – Skincare & Beauty Products in Nepal | Quality Skincare",
     template: "%s | VaultSkin",
   },
 
@@ -72,7 +72,7 @@ export const metadata = {
 
   openGraph: {
     title:
-      "VaultSkin – Skincare & Beauty Products in Nepal | Authentic Products",
+      "VaultSkin – Skincare & Beauty Products in Nepal | Quality Skincare",
 
     description:
       "Discover authentic skincare and beauty products in Nepal at VaultSkin. Explore sunscreens, serums, moisturizers, face washes, masks and more.",
