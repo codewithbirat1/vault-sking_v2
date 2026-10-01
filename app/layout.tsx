@@ -41,6 +41,7 @@ export const metadata = {
     "moisturizer Nepal",
     "face wash Nepal",
     "SkinInspired products",
+    "authentic skincare Nepal",
     "Korean skincare Nepal",
   ],
 
