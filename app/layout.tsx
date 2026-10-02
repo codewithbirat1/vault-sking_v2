@@ -11,12 +11,10 @@ const font = Plus_Jakarta_Sans({
   variable: "--font-sans",
 });
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
-  ? process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")
-  : "https://vaultskin.co";
+const baseUrl = "https://vaultskin.co";
 
 export const metadata = {
-  metadataBase: new URL(baseUrl),
+  metadataBase: new URL("https://vaultskin.co"),
 
   title: {
     default:
@@ -72,8 +70,7 @@ export const metadata = {
   },
 
   openGraph: {
-    title:
-      "VaultSkin – Skincare & Beauty Products in Nepal | Quality Skincare",
+    title: "VaultSkin – Skincare & Beauty Products in Nepal | Quality Skincare",
 
     description:
       "Discover skincare and beauty products at VaultSkin, featuring SkinInspired and trusted brands. Shop quality sunscreen, serums, moisturizers and more in Nepal.",
@@ -112,8 +109,6 @@ export const metadata = {
   },
 };
 
-
-
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
@@ -128,8 +123,6 @@ const organizationSchema = {
     url: `${baseUrl}/Images/logo.svg`,
   },
 };
-
-
 
 const websiteSchema = {
   "@context": "https://schema.org",
@@ -150,17 +143,9 @@ const websiteSchema = {
   inLanguage: "en-NP",
 };
 
-const RootLayout = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+const RootLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <html
-      lang="en"
-      className={font.variable}
-      data-scroll-behavior="smooth"
-    >
+    <html lang="en" className={font.variable} data-scroll-behavior="smooth">
       <head>
         {/* Organization Schema */}
         <script

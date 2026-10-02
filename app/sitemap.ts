@@ -3,9 +3,7 @@ import { fetchProducts } from "@/lib/product";
 import { getCategories, getAllBlogs } from "@/data/products";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
-    ? `https://${process.env.NEXT_PUBLIC_SITE_URL}`
-    : "https://vaultskin.co";
+  const baseUrl = "https://vaultskin.co";
 
   // Static routes
   const staticRoutes = [

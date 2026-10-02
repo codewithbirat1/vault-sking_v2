@@ -1,9 +1,22 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        destination: "https://vaultskin.co/:path*",
+        has: [{ type: "host", value: "www.vaultskin.co" }],
+        statusCode: 301,
+      },
+    ];
+  },
   compress: true,
   compiler: {
-    removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? { exclude: ["error", "warn"] }
+        : false,
   },
   experimental: {
     optimizePackageImports: [
