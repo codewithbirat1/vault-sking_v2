@@ -11,7 +11,7 @@ const font = Plus_Jakarta_Sans({
   variable: "--font-sans",
 });
 
-const baseUrl = "https://vaultskin.co";
+const baseUrl = "https://www.vaultskin.co";
 
 export const metadata = {
   metadataBase: new URL("https://vaultskin.co"),
