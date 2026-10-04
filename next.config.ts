@@ -38,6 +38,7 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "ik.imagekit.io",
+        pathname: "/vault088/**",
       },
       {
         protocol: "https",

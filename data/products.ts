@@ -1,5 +1,11 @@
 import { db } from "@/config/firebase.config";
-import { collection, getDocs, doc, getDoc, getDocFromServer } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  doc,
+  getDoc,
+  getDocFromServer,
+} from "firebase/firestore";
 
 export type ProductImage = {
   src?: string;
@@ -75,6 +81,7 @@ export type Blog = {
   title: string;
   slug: ProductSlug;
   mainImage: string;
+  mainImageAlt?: string;
   blogcategories: Array<{ title: string }>;
   publishedAt: string;
   author: { name: string };
@@ -319,7 +326,6 @@ const brands: Brand[] = [
     image:
       "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80",
   },
- 
 ];
 
 const announcement: Announcement = {

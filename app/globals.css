@@ -31,12 +31,10 @@
 
   /* Borders */
   --color-border: #dde3e8;
-
 }
 
 /* ================= BASE RESET ================= */
 @layer base {
-
   *,
   *::before,
   *::after {
@@ -75,4 +73,92 @@
   .touch-target {
     @apply min-h-[44px] min-w-[44px];
   }
+}
+
+.blog-content {
+  color: var(--color-text);
+  font-size: 1rem;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.blog-content p {
+  margin: 0 0 1.25rem;
+}
+
+.blog-content h2,
+.blog-content h3,
+.blog-content h4 {
+  color: var(--color-primary);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.blog-content h2 {
+  margin: 2.5rem 0 1rem;
+  font-size: 1.75rem;
+}
+
+.blog-content h3 {
+  margin: 2rem 0 0.75rem;
+  font-size: 1.35rem;
+}
+
+.blog-content h4 {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.blog-content ul,
+.blog-content ol {
+  margin: 0 0 1.5rem;
+  padding-left: 1.6rem;
+}
+
+.blog-content ul {
+  list-style: disc;
+}
+
+.blog-content ol {
+  list-style: decimal;
+}
+
+.blog-content li {
+  margin: 0.4rem 0;
+  padding-left: 0.2rem;
+}
+
+.blog-content li > p {
+  margin-bottom: 0.4rem;
+}
+
+.blog-content a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.blog-content a:hover {
+  color: var(--color-primary);
+}
+
+.blog-content blockquote {
+  margin: 1.75rem 0;
+  border-left: 3px solid var(--color-accent);
+  padding: 0.25rem 0 0.25rem 1.25rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.blog-content img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.75rem auto;
+  border-radius: 0.5rem;
+}
+
+.blog-content hr {
+  margin: 2rem 0;
+  border-color: var(--color-border);
 }

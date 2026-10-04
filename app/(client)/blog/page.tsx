@@ -1,9 +1,9 @@
 import Container from "@/components/Container";
 import Title from "@/components/layout/Products/Title";
+import BlogCoverImage from "@/components/layout/Blogs/BlogCoverImage";
 import { getAllBlogs } from "@/lib/frontend-data";
 import dayjs from "dayjs";
 import { Calendar } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import type { Metadata } from "next";
@@ -28,17 +28,15 @@ const BlogPage = async () => {
               key={blog?._id}
               className="group w-full max-w-sm mx-auto md:max-w-none md:mx-0 rounded-md overflow-hidden bg-white shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
             >
-              {blog?.mainImage && blog.mainImage.trim().length > 0 && (
-                <div className="overflow-hidden">
-                  <Image
-                    src={blog?.mainImage}
-                    alt="blogImage"
-                    width={500}
-                    height={500}
-                    className="w-full h-54 object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-              )}
+              <div className="relative aspect-[16/10] overflow-hidden bg-neutral-100">
+                <BlogCoverImage
+                  src={blog.mainImage}
+                  alt={blog.mainImageAlt?.trim() || blog.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
 
               <div className="bg-gray-50 p-2.5">
                 <div className="text-[11px] flex items-center justify-between gap-2">
