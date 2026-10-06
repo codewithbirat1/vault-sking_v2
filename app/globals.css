@@ -71,7 +71,7 @@
 
   /* Minimum 44px touch target */
   .touch-target {
-    @apply min-h-[44px] min-w-[44px];
+    @apply min-h-11 min-w-11;
   }
 }
 
@@ -161,4 +161,111 @@
 .blog-content hr {
   margin: 2rem 0;
   border-color: var(--color-border);
+}
+
+.search-modal-panel {
+  transform: translateY(-8px) scale(0.98);
+  transform-origin: top center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  will-change: opacity, transform;
+  transition:
+    opacity 180ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 220ms;
+}
+
+.search-modal-panel[data-open="true"] {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 180ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0s;
+}
+
+.search-modal-backdrop {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.search-modal-backdrop[data-open="true"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.search-stagger-item {
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 180ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.search-modal-panel[data-open="true"] .search-stagger-item {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: var(--stagger-delay, 0ms);
+}
+
+.search-trigger {
+  position: relative;
+  border-radius: 9999px;
+  transition:
+    box-shadow 150ms ease,
+    border-color 150ms ease;
+}
+
+.search-trigger::after {
+  position: absolute;
+  inset: 0;
+  border: 1px solid transparent;
+  border-radius: inherit;
+  content: "";
+  pointer-events: none;
+  transition: border-color 150ms ease;
+}
+
+.search-trigger[data-search-open="true"] {
+  border-color: rgb(31 54 64 / 0.2);
+  box-shadow: 0 0 0 4px rgb(31 54 64 / 0.08);
+}
+
+.search-trigger[data-search-open="true"]::after {
+  border-color: rgb(31 54 64 / 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-modal-panel,
+  .search-modal-panel[data-open="true"] {
+    transform: none;
+    transition:
+      opacity 100ms ease,
+      visibility 0s linear 100ms;
+  }
+
+  .search-modal-panel[data-open="true"] {
+    transition:
+      opacity 100ms ease,
+      visibility 0s linear 0s;
+  }
+
+  .search-stagger-item,
+  .search-modal-panel[data-open="true"] .search-stagger-item {
+    transform: none;
+    transition: opacity 100ms ease;
+    transition-delay: 0ms;
+  }
+
+  .search-modal-backdrop {
+    transition-duration: 100ms;
+  }
+
+  .search-trigger {
+    transition-duration: 100ms;
+  }
 }

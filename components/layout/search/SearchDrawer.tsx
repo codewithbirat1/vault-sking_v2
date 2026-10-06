@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useMemo } from "react";
-import { m, AnimatePresence } from "framer-motion";
 
 import { ArrowLeft, X, Search, RotateCcw, TrendingUp, Sparkles, ShoppingBag } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -11,28 +10,28 @@ import SearchResultCard from "./SearchResultCard";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 
 type SearchDrawerProps = {
+  isOpen: boolean;
   query: string;
   setQuery: (q: string) => void;
   onClose: () => void;
   onSubmit: (q: string) => void;
   placeholder?: string;
-};
-
-const drawerVariants = {
-  hidden: { opacity: 0, y: "100%" },
-  visible: { opacity: 1, y: 0 },
+  panelId: string;
 };
 
 export default function SearchDrawer({
+  isOpen,
   query,
   setQuery,
   onClose,
   onSubmit,
   placeholder = "Search skincare, brands, categories...",
+  panelId,
 }: SearchDrawerProps) {
   const { results, loading, error, highlightedIndex,  allProducts } = useSearch(query);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const [isVisible, setIsVisible] = useState(false);
 
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     try {
@@ -42,16 +41,23 @@ export default function SearchDrawer({
     }
   });
 
-  useBodyScrollLock();
+  useBodyScrollLock(isOpen);
 
   // Autofocus input
   useEffect(() => {
+    if (!isOpen) return;
+
     // Small timeout ensures the slide animation is smooth before focusing keyboard
     const timer = setTimeout(() => {
       inputRef.current?.focus();
     }, 150);
     return () => clearTimeout(timer);
-  }, []);
+  }, [isOpen]);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setIsVisible(isOpen));
+    return () => window.cancelAnimationFrame(frame);
+  }, [isOpen]);
 
   const handleProductSelect = (slug: string, name: string) => {
     handleSaveSearch(name);
@@ -150,14 +156,18 @@ export default function SearchDrawer({
   const hasQuery = query.trim().length > 0;
 
   return (
-    <AnimatePresence>
-      <m.div
-        className="fixed inset-0 z-50 flex flex-col bg-bg overflow-hidden"
-        initial="hidden"
-        animate="visible"
-        exit="hidden"
-        variants={drawerVariants}
-        transition={{ type: "tween", duration: 0.25, ease: "easeInOut" }}
+    <>
+      <div
+        id={panelId}
+        className="search-modal-panel fixed inset-x-0 z-1001 flex flex-col bg-bg overflow-y-auto"
+        data-open={isVisible}
+        aria-hidden={!isOpen}
+        inert={!isOpen}
+        style={{
+          top: "calc(var(--header-h, 0px) + 8px)",
+          bottom: "8px",
+          maxHeight: "calc(100vh - var(--header-h, 0px) - 16px)",
+        }}
       >
           <div
             className="flex flex-col h-full w-full pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
@@ -165,12 +175,12 @@ export default function SearchDrawer({
             onKeyDown={handleKeyDown}
           >
             {/* Premium Mobile Search Bar */}
-            <div className="flex items-center gap-2 px-3 py-3 border-b border-border/60 bg-white shrink-0 min-h-[64px] shadow-sm">
+            <div className="flex items-center gap-2 px-3 py-3 border-b border-border/60 bg-white shrink-0 min-h-16 shadow-sm">
               {/* Back Button (44px target) */}
               <button
                 type="button"
                 aria-label="Go back"
-                className="shrink-0 p-2.5 text-text hover:bg-gray-100 rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors"
+                className="shrink-0 p-2.5 text-text hover:bg-gray-100 rounded-full min-h-11 min-w-11 flex items-center justify-center transition-colors"
                 onClick={onClose}
               >
                 <ArrowLeft size={22} />
@@ -182,12 +192,13 @@ export default function SearchDrawer({
                 <input
                   ref={inputRef}
                   type="search"
+                  data-search-input
                   inputMode="search"
                   enterKeyHint="search"
                   placeholder={placeholder}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  className="w-full pl-10 pr-10 py-3 text-base text-text bg-transparent focus:outline-none min-h-[44px]"
+                  className="w-full pl-10 pr-10 py-3 text-base text-text bg-transparent focus:outline-none min-h-11"
                   aria-label="Search inputs"
                 />
                 
@@ -197,12 +208,21 @@ export default function SearchDrawer({
                     type="button"
                     aria-label="Clear search text"
                     onClick={handleClearInput}
-                    className="absolute right-1 text-text-muted hover:text-text p-2 rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors"
+                    className="absolute right-1 text-text-muted hover:text-text p-2 rounded-full min-h-11 min-w-11 flex items-center justify-center transition-colors"
                   >
                     <X size={18} />
                   </button>
                 )}
               </div>
+
+              <button
+                type="button"
+                aria-label="Close search"
+                className="shrink-0 p-2.5 text-text-muted hover:bg-gray-100 hover:text-text rounded-full min-h-11 min-w-11 flex items-center justify-center transition-colors"
+                onClick={onClose}
+              >
+                <X size={20} />
+              </button>
             </div>
 
             {/* Suggestions & Results Panel */}
@@ -223,7 +243,7 @@ export default function SearchDrawer({
                             saveRecentSearches([]);
                             setRecentSearches([]);
                           }}
-                          className="text-xs font-medium text-primary hover:underline px-2 py-1 min-h-[30px]"
+                          className="text-xs font-medium text-primary hover:underline px-2 py-1 min-h-7.5"
                         >
                           Clear All
                         </button>
@@ -237,7 +257,7 @@ export default function SearchDrawer({
                                 setQuery(term);
                                 handleSaveSearch(term);
                               }}
-                              className="flex-1 text-left py-3 text-sm text-text hover:text-primary min-h-[44px] flex items-center gap-2"
+                              className="flex-1 text-left py-3 text-sm text-text hover:text-primary min-h-11 flex items-center gap-2"
                             >
                               <Search size={14} className="text-text-muted" />
                               {term}
@@ -246,7 +266,7 @@ export default function SearchDrawer({
                               type="button"
                               aria-label={`Remove search term ${term}`}
                               onClick={(e) => handleRemoveSearch(e, term)}
-                              className="p-3 text-text-muted hover:text-rose-500 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                              className="p-3 text-text-muted hover:text-rose-500 min-h-11 min-w-11 flex items-center justify-center"
                             >
                               <X size={16} />
                             </button>
@@ -277,7 +297,7 @@ export default function SearchDrawer({
                             setQuery(term);
                             handleSaveSearch(term);
                           }}
-                          className="px-4 py-2 bg-white border border-border/80 rounded-full text-xs font-medium text-text hover:border-primary hover:text-primary transition-all min-h-[36px]"
+                          className="px-4 py-2 bg-white border border-border/80 rounded-full text-xs font-medium text-text hover:border-primary hover:text-primary transition-all min-h-9"
                         >
                           {term}
                         </button>
@@ -321,7 +341,7 @@ export default function SearchDrawer({
                                   router.push(`/category/${cat.toLowerCase()}`);
                                   onClose();
                                 }}
-                                className="px-3.5 py-1.5 bg-secondary/30 rounded-lg text-xs font-semibold text-primary transition-colors min-h-[36px]"
+                                className="px-3.5 py-1.5 bg-secondary/30 rounded-lg text-xs font-semibold text-primary transition-colors min-h-9"
                               >
                                 {cat}
                               </button>
@@ -346,7 +366,7 @@ export default function SearchDrawer({
                                   router.push(`/shop?brand=${encodeURIComponent(brand)}`);
                                   onClose();
                                 }}
-                                className="px-3.5 py-1.5 bg-gray-100 rounded-lg text-xs font-semibold text-text transition-colors min-h-[36px]"
+                                className="px-3.5 py-1.5 bg-gray-100 rounded-lg text-xs font-semibold text-text transition-colors min-h-9"
                               >
                                 {brand}
                               </button>
@@ -383,7 +403,7 @@ export default function SearchDrawer({
                                 handleSaveSearch(query);
                                 onSubmit(query);
                               }}
-                              className="w-full text-center py-3.5 bg-primary text-white text-sm font-semibold rounded-full shadow-md hover:bg-primary/95 transition-all active:scale-98 min-h-[44px]"
+                              className="w-full text-center py-3.5 bg-primary text-white text-sm font-semibold rounded-full shadow-md hover:bg-primary/95 transition-all active:scale-98 min-h-11"
                             >
                               View all results for &ldquo;{query}&rdquo;
                             </button>
@@ -427,7 +447,7 @@ export default function SearchDrawer({
               )}
             </div>
           </div>
-      </m.div>
-    </AnimatePresence>
+      </div>
+    </>
   );
 }

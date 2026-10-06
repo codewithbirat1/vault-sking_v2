@@ -1,30 +1,42 @@
 "use client";
 
-import { m, AnimatePresence } from "framer-motion";
 import { FocusTrap } from "focus-trap-react";
 import SearchResultCard from "./SearchResultCard";
 import SearchPreview from "./SearchPreview";
 import { useSearch } from "@/hooks/useSearch";
 import { LucideX, Search } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { getRecentSearches, saveRecentSearches } from "@/lib/localStorage";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 
 type SearchModalProps = {
+  isOpen: boolean;
   query: string;
   setQuery: (q: string) => void;
   onClose: () => void;
   onSubmit: (q: string) => void;
   placeholder?: string;
+  panelId: string;
+  autoFocus: boolean;
+  onActivate: () => void;
+  onHoverEnter: () => void;
+  onHoverLeave: () => void;
 };
 
 export default function SearchModal({
+  isOpen,
   query,
   setQuery,
   onClose,
   onSubmit,
   placeholder = "Search skincare, brands, categories...",
+  panelId,
+  autoFocus,
+  onActivate,
+  onHoverEnter,
+  onHoverLeave,
 }: SearchModalProps) {
   const {
     results,
@@ -39,12 +51,15 @@ export default function SearchModal({
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const router = useRouter();
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+    const frame = window.requestAnimationFrame(() => setIsVisible(isOpen));
+    if (isOpen && autoFocus) inputRef.current?.focus();
+    return () => window.cancelAnimationFrame(frame);
+  }, [isOpen, autoFocus]);
 
-  useBodyScrollLock();
+  useBodyScrollLock(isOpen && autoFocus);
 
   // Scroll active element into view
   useEffect(() => {
@@ -89,31 +104,36 @@ export default function SearchModal({
   const hasQuery = query.trim().length > 0;
 
   return (
-    <AnimatePresence>
+    <>
       {/* Backdrop */}
-      <m.div
-        key="backdrop"
-        className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
+      <div
+        aria-hidden="true"
+        className="search-modal-backdrop fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+        data-open={isVisible}
+        onClick={isOpen ? onClose : undefined}
       />
 
       {/* Modal panel */}
-      <m.div
-        key="modal"
-        className="fixed inset-x-0 top-18 z-50 mx-auto w-[90vw] md:max-w-225 lg:w-[95vw] lg:max-w-275 xl:max-w-300 px-4"
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -12 }}
-        transition={{ duration: 0.18, ease: "easeOut" }}
+      <div
+        id={panelId}
+        className="search-modal-panel fixed inset-x-0 z-50 mx-auto w-[90vw] md:max-w-225 lg:w-[95vw] lg:max-w-275 xl:max-w-300 px-4"
+        data-open={isVisible}
+        aria-hidden={!isOpen}
+        inert={!isOpen}
+        style={{ top: "calc(var(--header-h, 0px) + 8px)" }}
+        onMouseEnter={onHoverEnter}
+        onMouseLeave={onHoverLeave}
       >
-        <FocusTrap>
+        <FocusTrap
+          active={isOpen && autoFocus}
+          focusTrapOptions={{ initialFocus: autoFocus ? undefined : false }}
+        >
           <div
-            className="flex flex-col rounded-2xl bg-white shadow-2xl border border-gray-200 overflow-hidden"
+            className="flex flex-col rounded-2xl bg-white shadow-2xl border border-gray-200 overflow-y-auto"
             onKeyDown={handleKeyDown}
-            style={{ maxHeight: "calc(100vh - 100px)" }}
+            style={{
+              maxHeight: "calc(100vh - var(--header-h, 0px) - 16px)",
+            }}
           >
             {/* Search input row */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
@@ -124,6 +144,8 @@ export default function SearchModal({
                 placeholder={placeholder}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                onFocus={onActivate}
+                data-search-input
                 className="flex-1 bg-transparent text-base text-gray-900 placeholder:text-gray-400 focus:outline-none"
                 aria-label="Search input"
               />
@@ -155,8 +177,14 @@ export default function SearchModal({
                       "Gentle Face Cleanser",
                       "Retinol Night Cream",
                       "Hydrating Moisturizer",
-                    ].map((term) => (
-                      <li key={term}>
+                    ].map((term, index) => (
+                      <li
+                        key={term}
+                        className="search-stagger-item"
+                        style={{
+                          "--stagger-delay": `${index * 30}ms`,
+                        } as CSSProperties}
+                      >
                         <button type="button"
                           onClick={() => setQuery(term)}
                           className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"
@@ -248,7 +276,7 @@ export default function SearchModal({
             </div>
           </div>
         </FocusTrap>
-      </m.div>
-    </AnimatePresence>
+      </div>
+    </>
   );
 }

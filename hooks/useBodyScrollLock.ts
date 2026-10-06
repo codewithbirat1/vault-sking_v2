@@ -2,8 +2,10 @@
 
 import { useEffect } from "react";
 
-export function useBodyScrollLock() {
+export function useBodyScrollLock(enabled = true) {
   useEffect(() => {
+    if (!enabled) return;
+
     const body = document.body;
     const scrollY = window.scrollY;
     const previousStyles = {
@@ -25,5 +27,5 @@ export function useBodyScrollLock() {
       body.style.width = previousStyles.width;
       window.scrollTo(0, scrollY);
     };
-  }, []);
+  }, [enabled]);
 }

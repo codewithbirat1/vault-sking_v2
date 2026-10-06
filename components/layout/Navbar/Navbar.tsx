@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Container from "@/components/Container";
 import Logo from "./Logo";
 import NavLinks from "./NavLinks";
@@ -25,6 +25,14 @@ const Navbar = () => {
 
     naturalTopRef.current = nav.getBoundingClientRect().top + window.scrollY;
 
+    const updateHeaderOffset = () => {
+      const headerBottom = nav.getBoundingClientRect().bottom;
+      document.documentElement.style.setProperty(
+        "--header-h",
+        `${Math.max(headerBottom, 0)}px`,
+      );
+    };
+
     const updatePosition = () => {
       if (document.body.style.position === "fixed") return;
 
@@ -32,6 +40,7 @@ const Navbar = () => {
       isFixedRef.current = shouldBeFixed;
       setIsFixed(shouldBeFixed);
       setNavHeight(nav.offsetHeight);
+      updateHeaderOffset();
     };
 
     const updateNaturalTop = () => {
@@ -45,12 +54,36 @@ const Navbar = () => {
     updatePosition();
     window.addEventListener("scroll", updatePosition, { passive: true });
     window.addEventListener("resize", updateNaturalTop);
+    window.addEventListener("load", updateHeaderOffset);
 
     return () => {
       window.removeEventListener("scroll", updatePosition);
       window.removeEventListener("resize", updateNaturalTop);
+      window.removeEventListener("load", updateHeaderOffset);
     };
   }, []);
+
+  useLayoutEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const updateHeaderOffset = () => {
+      const headerBottom = nav.getBoundingClientRect().bottom;
+      document.documentElement.style.setProperty(
+        "--header-h",
+        `${Math.max(headerBottom, 0)}px`,
+      );
+    };
+
+    updateHeaderOffset();
+    const headerObserver = new ResizeObserver(updateHeaderOffset);
+    headerObserver.observe(nav);
+    if (nav.previousElementSibling instanceof HTMLElement) {
+      headerObserver.observe(nav.previousElementSibling);
+    }
+
+    return () => headerObserver.disconnect();
+  }, [isFixed]);
 
   return (
     <>
