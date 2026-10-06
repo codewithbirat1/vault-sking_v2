@@ -14,28 +14,48 @@ const HomeCategories = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let latestRequest = 0;
+
     const unsubscribe = onSnapshot(
       collection(db, "categories"),
       async (snapshot) => {
+        const requestId = ++latestRequest;
         const rawDocs = snapshot.docs.map((doc) => ({
           ...(doc.data() as Category),
           _id: doc.id,
         }));
 
-        setCategories(rawDocs);
-        setIsLoading(false);
-
-        try {
-          const withCounts = await Promise.all(
-            rawDocs.map(async (cat) => {
+        const withCounts = await Promise.all(
+          rawDocs.map(async (cat) => {
+            try {
               const productCount = await getCategoryProductCount(cat._id);
               return { ...cat, productCount };
-            })
-          );
-          setCategories(withCounts);
-        } catch (e) {
-          console.error("Failed to load category product counts", e);
-        }
+            } catch (error) {
+              console.error(
+                `Failed to load product count for category "${cat._id}"`,
+                error,
+              );
+              return cat;
+            }
+          }),
+        );
+
+        if (requestId !== latestRequest) return;
+
+        setCategories((previousCategories) =>
+          withCounts.map((category) => {
+            if (typeof category.productCount === "number") return category;
+
+            const previousCount = previousCategories.find(
+              (previous) => previous._id === category._id,
+            )?.productCount;
+
+            return previousCount === undefined
+              ? category
+              : { ...category, productCount: previousCount };
+          }),
+        );
+        setIsLoading(false);
       },
       (error) => {
         console.error(error);
@@ -43,7 +63,10 @@ const HomeCategories = () => {
       }
     );
 
-    return unsubscribe;
+    return () => {
+      latestRequest += 1;
+      unsubscribe();
+    };
   }, []);
 
   return (
@@ -94,7 +117,7 @@ const HomeCategories = () => {
                   <h3 className="text-base font-semibold">{category?.title}</h3>
                   <p className="text-sm">
                     <span className="font-bold text-primary">
-                      {`(${category?.productCount ?? 0})`}
+                      {`(${category?.productCount ?? "—"})`}
                     </span>{" "}
                     items Available
                   </p>

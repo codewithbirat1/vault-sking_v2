@@ -86,6 +86,7 @@ const OrderDetailClient = () => {
   const [order, setOrder] = useState<CustomerOrder | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [reviewedProductIds, setReviewedProductIds] = useState<Set<string>>(new Set());
   const orderId = params.slug;
 
   useEffect(() => {
@@ -117,6 +118,30 @@ const OrderDetailClient = () => {
       isCurrent = false;
     };
   }, [isLoaded, isSignedIn, orderId, user?.id]);
+
+  useEffect(() => {
+    if (!isSignedIn || !user?.id) return;
+    
+    // Fetch reviewed product IDs
+    const fetchReviewedProducts = async () => {
+      try {
+        const { getDocs, collection, query, where } = await import("firebase/firestore");
+        const { db } = await import("@/config/firebase.config");
+        const q = query(collection(db, "reviews"), where("userId", "==", user.id));
+        const snapshot = await getDocs(q);
+        const ids = new Set<string>();
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          if (data.productId) ids.add(data.productId);
+        });
+        setReviewedProductIds(ids);
+      } catch (e) {
+        console.error("Failed to fetch reviewed products", e);
+      }
+    };
+    
+    fetchReviewedProducts();
+  }, [isSignedIn, user?.id]);
 
   const handleCancel = async () => {
     if (!order || !user?.id) return;
@@ -272,7 +297,7 @@ const OrderDetailClient = () => {
                       Qty: {item.quantity}
                     </p>
                   </div>
-                  <div className="text-right flex flex-col justify-center">
+                  <div className="text-right flex flex-col justify-center items-end">
                     <PriceFormatter
                       amount={(item.price - item.discount) * item.quantity}
                       className="font-semibold text-text"
@@ -281,6 +306,14 @@ const OrderDetailClient = () => {
                       <p className="mt-1.5 text-xs text-muted-foreground">
                         {item.quantity} × <PriceFormatter amount={item.price - item.discount} className="inline" />
                       </p>
+                    )}
+                    {order.status === "delivered" && !reviewedProductIds.has(item.productId) && (
+                      <Link
+                        href={`/api/product-redirect?id=${item.productId}`}
+                        className="mt-3 inline-flex h-8 items-center justify-center rounded-md border border-input bg-background px-3 text-xs font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                      >
+                        Write a review
+                      </Link>
                     )}
                   </div>
                 </div>
@@ -412,6 +445,7 @@ const OrderDetailClient = () => {
           </Card>
         </div>
       </div>
+
     </Container>
   );
 };

@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { m } from "framer-motion";
 import { ArrowRight, Tag } from "lucide-react";
-import { SearchResult } from "@/types/search";
+import { isCustomerFacingLabel, SearchResult } from "@/types/search";
 import { getSafeImageSrc, PLACEHOLDER_IMAGE, isS3Url } from "@/lib/image";
 
 type Props = {
@@ -24,6 +24,10 @@ export default function SearchPreview({ result, onView }: Props) {
   };
 
   const imageUrl = getSafeImageSrc(result.imageUrl);
+  const hasBrand = isCustomerFacingLabel(result.brand, result.id);
+  const hasCategory =
+    isCustomerFacingLabel(result.category, result.id) &&
+    result.category !== result.brand;
 
   return (
     <m.div
@@ -68,9 +72,11 @@ export default function SearchPreview({ result, onView }: Props) {
       </h3>
 
       {/* Brand & category */}
-      <p className="text-sm text-gray-500 mb-1">{result.brand}</p>
+      {hasBrand && (
+        <p className="text-sm text-gray-500 mb-1">{result.brand}</p>
+      )}
 
-      {result.category && (
+      {hasCategory && (
         <span className="inline-flex items-center gap-1 text-xs text-gray-400 mb-3">
           <Tag size={11} />
           {result.category}
@@ -78,7 +84,7 @@ export default function SearchPreview({ result, onView }: Props) {
       )}
 
       {/* Price */}
-      <p className="text-lg font-bold text-primary mb-4">{result.price}</p>
+      <p className="text-lg font-bold text-primary mb-4">NPR {result.price}</p>
 
       {/* CTA */}
       <button type="button"

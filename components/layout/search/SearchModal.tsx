@@ -9,6 +9,7 @@ import { LucideX, Search } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getRecentSearches, saveRecentSearches } from "@/lib/localStorage";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 
 type SearchModalProps = {
   query: string;
@@ -43,14 +44,7 @@ export default function SearchModal({
     inputRef.current?.focus();
   }, []);
 
-  // Lock body scroll while open
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, []);
+  useBodyScrollLock();
 
   // Scroll active element into view
   useEffect(() => {
@@ -109,7 +103,7 @@ export default function SearchModal({
       {/* Modal panel */}
       <m.div
         key="modal"
-        className="fixed inset-x-0 top-[72px] z-50 mx-auto w-[90vw] md:max-w-[900px] lg:w-[95vw] lg:max-w-[1100px] xl:max-w-[1200px] px-4"
+        className="fixed inset-x-0 top-18 z-50 mx-auto w-[90vw] md:max-w-225 lg:w-[95vw] lg:max-w-275 xl:max-w-300 px-4"
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -12 }}
@@ -123,7 +117,7 @@ export default function SearchModal({
           >
             {/* Search input row */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
-              <Search className="h-5 w-5 flex-shrink-0 text-gray-400" />
+              <Search className="h-5 w-5 shrink-0 text-gray-400" />
               <input
                 ref={inputRef}
                 type="search"
@@ -139,7 +133,7 @@ export default function SearchModal({
               <button type="button"
                 aria-label="Close search"
                 onClick={onClose}
-                className="flex-shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+                className="shrink-0ded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
               >
                 <LucideX size={18} />
               </button>
@@ -225,7 +219,7 @@ export default function SearchModal({
                   </div>
 
                   {/* Preview panel */}
-                  <div className="w-full lg:w-1/2 overflow-y-auto bg-gray-50/60 max-h-[40vh] lg:max-h-none flex-shrink-0">
+                  <div className="w-full lg:w-1/2 overflow-y-auto bg-gray-50/60 max-h-[40vh] lg:max-h-none shrink-0">
                     {highlightedIndex >= 0 && results[highlightedIndex] ? (
                       <SearchPreview
                         result={results[highlightedIndex]}

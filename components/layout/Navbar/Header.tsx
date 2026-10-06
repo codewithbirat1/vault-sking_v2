@@ -12,9 +12,9 @@ const Header = async () => {
   const announcement = await getActiveAnnouncement();
 
   return (
-    <header className="bg-primary text-white">
+    <header className="w-full bg-primary text-white">
       <Container>
-        <div className="grid min-h-[44px] py-1 grid-cols-1 items-center text-xs md:grid-cols-3 md:text-sm">
+        <div className="grid min-h-11 py-1 grid-cols-1 items-center text-xs md:grid-cols-3 md:text-sm">
           {/* Spacer (desktop only) keeps promo centered in 3-col grid */}
           <div className="hidden md:block" aria-hidden="true" />
 

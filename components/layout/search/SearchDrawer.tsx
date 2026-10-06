@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useSearch } from "@/hooks/useSearch";
 import { getRecentSearches, saveRecentSearches } from "@/lib/localStorage";
 import SearchResultCard from "./SearchResultCard";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 
 type SearchDrawerProps = {
   query: string;
@@ -41,14 +42,7 @@ export default function SearchDrawer({
     }
   });
 
-  // Lock body scroll while open and restore correctly
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, []);
+  useBodyScrollLock();
 
   // Autofocus input
   useEffect(() => {

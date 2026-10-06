@@ -32,20 +32,18 @@ const BenefitsList = ({
           const isChecked = selectedBenefits.includes(benefit.value);
           return (
             <div
-              onClick={() => toggleBenefit(benefit.value)}
               key={benefit.value}
 className="flex items-center gap-2 h-8 px-1 rounded-md hover:bg-muted/40 cursor-pointer transition-colors"            >
               <Checkbox
                 checked={isChecked}
                 id={`benefit-${benefit.value}`}
-                onCheckedChange={() => {}} // Click handled by parent div
+                onCheckedChange={() => toggleBenefit(benefit.value)}
               />
               <Label
                 htmlFor={`benefit-${benefit.value}`}
                 className={`cursor-pointer text-sm transition-colors duration-150 ${
                   isChecked ? "font-semibold text-primary" : "font-normal text-text"
                 } group-hover:text-primary flex-1 py-2`}
-                onClick={(e) => e.preventDefault()} // Let parent div handle clicking
               >
                 {benefit.title}
               </Label>

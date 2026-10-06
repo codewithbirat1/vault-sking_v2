@@ -3,7 +3,6 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useState,
   useSyncExternalStore,
 } from "react";
@@ -196,10 +195,7 @@ export const useCart = () => {
     clearGuestCart();
   }, [isSignedIn, user]);
 
-  const cartCount = useMemo(
-    () => cart.reduce((sum, item) => sum + item.quantity, 0),
-    [cart],
-  );
+  const cartCount = cart.length;
 
   return {
     cart,

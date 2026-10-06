@@ -333,7 +333,7 @@ export default async function SingleProductPage({ params }: Props) {
           tabs.push({
             id: "reviews",
             label: "Reviews",
-            content: <ProductReviews />,
+            content: <ProductReviews productId={product._id} />,
           });
 
           return <ProductTabs tabs={tabs} />;

@@ -6,8 +6,7 @@ import SocialMedia from "@/components/layout/Footer/SocialMedia";
 import { SubText, SubTitle } from "@/components/ui/text";
 import { categoriesData, quickLinksData } from "@/constants/data";
 import Link from "next/link";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import NewsletterSignup from "./NewsletterSignup";
 import { FooterTermsLink, FooterPrivacyLink } from "./FooterDialogLink";
 
 const Footer = () => {
@@ -87,10 +86,7 @@ const Footer = () => {
               Subscribe to our newsletter to receive updates and exclusive
               offers
             </SubText>
-            <form className="space-y-3">
-              <Input placeholder="Enter your email" type="email" required />
-              <Button className="w-full">Subscribe</Button>
-            </form>
+            <NewsletterSignup />
           </div>
         </div>
         <div className=" flex flex-row justify-between items-center py-5 text-lg border-t border-accent/90 text-center text-sm text-primary">

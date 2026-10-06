@@ -85,7 +85,7 @@ export const metadata = {
 
     images: [
       {
-        url: url: "/Images/logo.svg",
+        url: "/Images/logo.svg",
         alt: "VaultSkin – Skincare & Beauty Products in Nepal",
       },
     ],

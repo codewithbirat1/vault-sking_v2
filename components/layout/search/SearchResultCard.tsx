@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { m } from "framer-motion";
-import { SearchResult } from "@/types/search";
+import { isCustomerFacingLabel, SearchResult } from "@/types/search";
 import { getSafeImageSrc, PLACEHOLDER_IMAGE, isS3Url } from "@/lib/image";
 import HighlightedText from "./HighlightedText";
 
@@ -16,6 +16,10 @@ export default function SearchResultCard({ result, onSelect, isHighlighted }: Pr
   const nameMatches = result.matches?.find((m) => m.key === "name")?.indices;
   const brandMatches = result.matches?.find((m) => m.key === "brand")?.indices;
   const categoryMatches = result.matches?.find((m) => m.key === "category")?.indices;
+  const hasBrand = isCustomerFacingLabel(result.brand, result.id);
+  const hasCategory =
+    isCustomerFacingLabel(result.category, result.id) &&
+    result.category !== result.brand;
   const imageUrl = getSafeImageSrc(result.imageUrl);
 
   return (
@@ -30,7 +34,7 @@ export default function SearchResultCard({ result, onSelect, isHighlighted }: Pr
       transition={{ duration: 0.12 }}
     >
       {/* Product thumbnail */}
-      <div className="flex-shrink-0 w-14 h-14 relative rounded-lg overflow-hidden bg-gray-100">
+      <div className="shrink-0 w-14 h-14 relative rounded-lg overflow-hidden bg-gray-100">
         <Image
           src={imageUrl}
           alt={result.name}
@@ -50,15 +54,22 @@ export default function SearchResultCard({ result, onSelect, isHighlighted }: Pr
         <p className="text-sm font-medium text-gray-900 truncate leading-tight">
           <HighlightedText text={result.name} indices={nameMatches} />
         </p>
-        <p className="text-xs text-gray-500 mt-0.5 truncate">
-          <HighlightedText text={result.brand} indices={brandMatches} />
-          {result.category && result.category !== result.brand ? (
-            <>
-              {" · "}
-              <HighlightedText text={result.category} indices={categoryMatches} />
-            </>
-          ) : ""}
-        </p>
+        {(hasBrand || hasCategory) && (
+          <p className="text-xs text-gray-500 mt-0.5 truncate">
+            {hasBrand && (
+              <HighlightedText text={result.brand} indices={brandMatches} />
+            )}
+            {hasCategory ? (
+              <>
+                {hasBrand && " · "}
+                <HighlightedText
+                  text={result.category}
+                  indices={categoryMatches}
+                />
+              </>
+            ) : null}
+          </p>
+        )}
         <div className="flex items-center gap-2 mt-1">
           <span className="text-xs font-semibold text-primary">
             NPR {result.price}

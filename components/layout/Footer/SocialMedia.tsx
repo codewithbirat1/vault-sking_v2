@@ -18,7 +18,7 @@ interface Props {
 export const socialLinks = [
   {
     title: "Facebook",
-    href: "https://https://www.facebook.com/vaultskinco",
+    href: "https://www.facebook.com/vaultskinco",
     icon: FaFacebookF,
   },
   {
@@ -28,7 +28,7 @@ export const socialLinks = [
   },
   {
     title: "TikTok",
-    href: "https://www.tiktok.com/@vaultskinco",
+    href: "https://www.tiktok.com/@vaultskinnepal",
     icon: FaTiktok,
   },
 ];

@@ -32,7 +32,6 @@ const BrandList = ({ brands, selectedBrands, setSelectedBrands }: Props) => {
           const isChecked = selectedBrands.includes(slug);
           return (
             <div
-              onClick={() => toggleBrand(slug)}
               key={brand?._id}
 className="flex items-center gap-2 h-8 px-1 rounded-md hover:bg-muted/40 cursor-pointer transition-colors"            >
               <Checkbox
@@ -45,7 +44,6 @@ className="flex items-center gap-2 h-8 px-1 rounded-md hover:bg-muted/40 cursor-
                 className={`cursor-pointer text-sm transition-colors duration-150 ${
                   isChecked ? "font-semibold text-primary" : "font-normal text-text"
                 } group-hover:text-primary flex-1 py-2`}
-                onClick={(e) => e.preventDefault()} // Let parent div handle clicking
               >
                 {brand?.title}
               </Label>

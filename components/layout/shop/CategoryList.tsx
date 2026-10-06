@@ -35,7 +35,6 @@ const CategoryList = ({
           const isChecked = selectedCategories.includes(slug);
           return (
             <div
-              onClick={() => toggleCategory(slug)}
               key={category?._id}
               className="flex items-center gap-2 h-8 px-1 rounded-md hover:bg-muted/40 cursor-pointer transition-colors"           >
               <Checkbox
@@ -49,7 +48,6 @@ const CategoryList = ({
                   ? "font-semibold text-zinc-900"
                   : "font-medium text-zinc-600"
                   } group-hover:text-primary flex-1 py-2`}
-                onClick={(e) => e.preventDefault()} // Let parent div handle clicking
               >
                 {category?.title}
               </Label>

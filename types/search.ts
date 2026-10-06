@@ -6,6 +6,7 @@ export type SearchResult = {
   name: string;
   slug: string;
   imageUrl: string;
+  description?: string;
   category: string;
   brand: string;
   variant: string;
@@ -19,6 +20,16 @@ export type SearchResult = {
     value?: string;
   }>;
 };
+
+export function isCustomerFacingLabel(
+  value: string | undefined,
+  productId?: string,
+): value is string {
+  const label = value?.trim();
+  if (!label || label === productId) return false;
+
+  return !/^[A-Za-z0-9_-]{16,}$/.test(label);
+}
 
 /**
  * Client-side ranking of results already returned by the API.

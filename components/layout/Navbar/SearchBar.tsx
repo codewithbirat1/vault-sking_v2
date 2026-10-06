@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { useMediaQuery } from "usehooks-ts";
 import { useRouter } from "next/navigation";
 import { getRecentSearches, saveRecentSearches } from "@/lib/localStorage";
+import { createPortal } from "react-dom";
 
 // Lazy load modal/drawer to avoid SSR issues
 const SearchModal = dynamic(() => import("@/components/layout/search/SearchModal"), { ssr: false });
@@ -109,25 +110,28 @@ const SearchBar = ({
       )}
 
       {/* Render modal or drawer based on viewport */}
-      {open && (
-        isMobile ? (
-          <SearchDrawer
-            query={query}
-            setQuery={setQuery}
-            onClose={handleClose}
-            onSubmit={handleSubmit}
-            placeholder={placeholder}
-          />
-        ) : (
-          <SearchModal
-            query={query}
-            setQuery={setQuery}
-            onClose={handleClose}
-            onSubmit={handleSubmit}
-            placeholder={placeholder}
-          />
-        )
-      )}
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          isMobile ? (
+            <SearchDrawer
+              query={query}
+              setQuery={setQuery}
+              onClose={handleClose}
+              onSubmit={handleSubmit}
+              placeholder={placeholder}
+            />
+          ) : (
+            <SearchModal
+              query={query}
+              setQuery={setQuery}
+              onClose={handleClose}
+              onSubmit={handleSubmit}
+              placeholder={placeholder}
+            />
+          ),
+          document.body,
+        )}
     </>
   );
 };
