@@ -4,9 +4,10 @@ import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
 
 export const metadata: Metadata = {
-  title: "Checkout | Vault Skin",
+  title: { absolute: "Checkout | Vault Skin" },
   description:
     "Complete your Vault Skin order with secure checkout and fast delivery across Nepal.",
+  robots: { index: false, follow: false },
 };
 
 export default async function Page() {

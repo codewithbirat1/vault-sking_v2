@@ -15,13 +15,14 @@ import ProductTabs, {
 } from "@/components/layout/Products/ProductTabs";
 import { StarIcon, Check, Tag } from "lucide-react";
 import { cache } from "react";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { collection, getDocs, query, where, limit } from "firebase/firestore";
 import { db } from "@/config/firebase.config";
 import { Product } from "@/data/products";
 import RecommendedProducts from "@/components/layout/Products/RecommendedProducts";
 import { serializeFirestoreData } from "@/lib/serialize";
 import type { Metadata } from "next";
+import { canonicalUrl } from "@/lib/seo";
 
 interface Props {
   params: Promise<{
@@ -75,8 +76,11 @@ const getProductBySlug = cache(async (slug: string): Promise<Product | null> => 
   }
 
   const doc = snapshot.docs[0];
+  const data = doc.data();
+  if (typeof data.name !== "string" || !data.name.trim()) return null;
+
   return serializeFirestoreData<Product>({
-    ...(doc.data() as Omit<Product, "_id">),
+    ...(data as Omit<Product, "_id">),
     _id: doc.id,
   });
 });
@@ -98,23 +102,28 @@ const getRecommendedProducts = cache(async (): Promise<Product[]> => {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const product = await getProductBySlug(slug.toLowerCase());
 
   if (!product) {
-    return { title: "Product" };
+    notFound();
   }
-  
+
+  const productUrl = canonicalUrl(
+    `/product/${encodeURIComponent(product.slug.current)}`,
+  );
   const productImages = (product.images ?? []).map((img) => getImageSrc(img)).filter(Boolean);
   const ogImage = productImages.length > 0 ? productImages[0] : (typeof product.thumbnail === "string" ? getSafeImageSrc(product.thumbnail) : "");
 
   return {
-    title: product.name,
+    title: { absolute: `${product.name} | Vault Skin` },
     description:
       product.description?.slice(0, 160) ||
       `Shop ${product.name} at Vault Skin — authentic skincare in Nepal.`,
+    alternates: { canonical: productUrl },
     openGraph: {
-      title: product.name,
+      title: `${product.name} | Vault Skin`,
       description: product.description?.slice(0, 160) || `Shop ${product.name} at Vault Skin.`,
+      url: productUrl,
       images: ogImage ? [{ url: ogImage }] : [],
     },
   };
@@ -124,12 +133,16 @@ export default async function SingleProductPage({ params }: Props) {
   const { slug } = await params;
 
   const [product, recommendedPool] = await Promise.all([
-    getProductBySlug(slug),
+    getProductBySlug(slug.toLowerCase()),
     getRecommendedProducts(),
   ]);
 
-  if (!product) {
-    notFound();
+  if (!product?.slug?.current) notFound();
+
+  if (slug !== product.slug.current) {
+    permanentRedirect(
+      `/product/${encodeURIComponent(product.slug.current)}`,
+    );
   }
 
   const recommendedProducts = recommendedPool
@@ -163,8 +176,48 @@ export default async function SingleProductPage({ params }: Props) {
           ]
         : [];
 
+  const productUrl = canonicalUrl(
+    `/product/${encodeURIComponent(product.slug.current)}`,
+  );
+  const finalPrice = product.price - product.discount;
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    url: productUrl,
+    ...(product.description ? { description: product.description } : {}),
+    ...(normalizedImages.length > 0
+      ? { image: normalizedImages.map((image) => image.src) }
+      : {}),
+    ...(product.sku?.trim() ? { sku: product.sku } : {}),
+    ...(product.brand?.trim()
+      ? { brand: { "@type": "Brand", name: product.brand } }
+      : {}),
+    ...(Number.isFinite(finalPrice) && finalPrice >= 0
+      ? {
+          offers: {
+            "@type": "Offer",
+            url: productUrl,
+            priceCurrency: "NPR",
+            price: finalPrice.toFixed(2),
+            ...(product.stock > 0
+              ? { availability: "https://schema.org/InStock" }
+              : product.stock === 0
+                ? { availability: "https://schema.org/OutOfStock" }
+                : {}),
+          },
+        }
+      : {}),
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(productSchema).replace(/</g, "\\u003c"),
+        }}
+      />
       <Container className="flex flex-col md:flex-row gap-8 py-5 md:py-8">
         {normalizedImages.length > 0 && (
           <ImageView images={normalizedImages} isStock={product?.stock} />

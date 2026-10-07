@@ -3,8 +3,9 @@ import OrdersClient from "@/components/layout/Order/OrdersClient";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "My Orders | Vault Skin",
+  title: { absolute: "My Orders | Vault Skin" },
   description: "View your purchases, delivery progress, and order details.",
+  robots: { index: false, follow: false },
 };
 
 export default async function Page() {

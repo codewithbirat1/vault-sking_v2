@@ -4,8 +4,9 @@ import AuthLayout from "@/components/auth/AuthLayout";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Sign Up | Vault Skin",
+  title: { absolute: "Sign Up | Vault Skin" },
   description: "Create a Vault Skin account to save your wishlist and track orders.",
+  robots: { index: false, follow: false },
 };
 
 const clerkAppearance = {

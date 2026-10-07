@@ -5,10 +5,19 @@ import Features from "@/components/layout/About/Features";
 import PartnerBrand from "@/components/layout/About/PartnerBrand";
 import MissionVision from "@/components/layout/About/MissionVision";
 import Values from "@/components/layout/About/Values";
+import type { Metadata } from "next";
+import { canonicalUrl } from "@/lib/seo";
 
-export const metadata = {
-  title: "About Us",
+export const metadata: Metadata = {
+  title: { absolute: "About | Vault Skin" },
   description: "Learn more about Vault Skin, your trusted destination for authentic skincare products in Nepal.",
+  alternates: { canonical: canonicalUrl("/about") },
+  openGraph: {
+    title: "About | Vault Skin",
+    description:
+      "Learn more about Vault Skin, your trusted destination for authentic skincare products in Nepal.",
+    url: canonicalUrl("/about"),
+  },
 };
 
 const AboutPage = () => {

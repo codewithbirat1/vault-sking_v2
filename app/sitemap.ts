@@ -1,59 +1,76 @@
 import { MetadataRoute } from "next";
-import { fetchProducts } from "@/lib/product";
-import { getCategories, getAllBlogs } from "@/data/products";
+import { fetchCategories, fetchProducts } from "@/lib/product";
+import { getAllBlogs, getBrands } from "@/data/products";
+import { canonicalUrl } from "@/lib/seo";
+
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://vaultskin.co";
-
-  // Static routes
-  const staticRoutes = [
+  const staticPaths = [
     "",
     "/about",
     "/contact",
     "/shop",
     "/blog",
-    "/brand",
-  ].map((route) => ({
-    url: `${baseUrl}${route}`,
-    lastModified: new Date().toISOString(),
-    changeFrequency: "weekly" as const,
-    priority: route === "" ? 1 : 0.8,
-  }));
+    "/deal",
+  ];
 
-  // Categories
-  const categories = getCategories();
-  const categoryRoutes = categories.map((category) => ({
-    url: `${baseUrl}/category/${category.slug.current}`,
-    lastModified: new Date().toISOString(),
-    changeFrequency: "weekly" as const,
-    priority: 0.8,
-  }));
+  const [products, categories, blogs] = await Promise.all([
+    fetchProducts(),
+    fetchCategories(),
+    getAllBlogs(),
+  ]);
 
-  let productRoutes: MetadataRoute.Sitemap = [];
-  try {
-    const products = await fetchProducts();
-    productRoutes = products.map((product) => ({
-      url: `${baseUrl}/product/${product.slug?.current || product._id}`,
-      lastModified: new Date().toISOString(),
-      changeFrequency: "daily" as const,
-      priority: 0.9,
-    }));
-  } catch (error) {
-    console.error("Error fetching products for sitemap:", error);
-  }
+  const uniquePaths = new Set<string>(staticPaths);
+  const productSlugs = new Set<string>();
+  const productRoutes = products.flatMap((product) => {
+    const slug = product.slug?.current?.trim();
+    if (!slug || !product.name?.trim() || productSlugs.has(slug)) return [];
 
-  let blogRoutes: MetadataRoute.Sitemap = [];
-  try {
-    const blogs = await getAllBlogs();
-    blogRoutes = blogs.map((blog) => ({
-      url: `${baseUrl}/blog/${blog.slug?.current || blog._id}`,
-      lastModified: new Date(blog.publishedAt || new Date()).toISOString(),
-      changeFrequency: "weekly" as const,
-      priority: 0.7,
-    }));
-  } catch (error) {
-    console.error("Error fetching blogs for sitemap:", error);
-  }
+    productSlugs.add(slug);
+    return [{ url: canonicalUrl(`/product/${encodeURIComponent(slug)}`) }];
+  });
 
-  return [...staticRoutes, ...categoryRoutes, ...productRoutes, ...blogRoutes];
+  const categorySlugs = new Set<string>();
+  const categoryRoutes = categories.flatMap((category) => {
+    const slug = category.slug.current.trim();
+    if (!slug || categorySlugs.has(slug)) return [];
+
+    categorySlugs.add(slug);
+    return [{ url: canonicalUrl(`/category/${encodeURIComponent(slug)}`) }];
+  });
+
+  const brands = getBrands();
+  const brandRoutes = brands.flatMap((brand) => {
+    const brandKey = brand.title.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const hasProducts = products.some(
+      (product) =>
+        product.brand?.toLowerCase().replace(/[^a-z0-9]/g, "") === brandKey &&
+        Boolean(product.slug?.current?.trim()),
+    );
+    if (!hasProducts) return [];
+
+    return [
+      {
+        url: canonicalUrl(`/brand/${encodeURIComponent(brand.slug.current)}`),
+      },
+    ];
+  });
+
+  const blogSlugs = new Set<string>();
+  const blogRoutes = blogs.flatMap((blog) => {
+    const slug = blog.slug?.current?.trim();
+    if (!slug || !blog.title?.trim() || blogSlugs.has(slug)) return [];
+
+    blogSlugs.add(slug);
+    return [{ url: canonicalUrl(`/blog/${encodeURIComponent(slug)}`) }];
+  });
+
+  return [
+    ...Array.from(uniquePaths, (path) => ({ url: canonicalUrl(path) })),
+    ...categoryRoutes,
+    ...productRoutes,
+    ...brandRoutes,
+    ...blogRoutes,
+  ];
 }

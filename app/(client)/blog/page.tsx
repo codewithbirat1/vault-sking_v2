@@ -7,11 +7,19 @@ import { Calendar } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import type { Metadata } from "next";
+import { canonicalUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Blog",
+  title: { absolute: "Blog | Vault Skin" },
   description:
     "Skincare tips, product guides, and beauty insights from Vault Skin — your trusted skincare destination in Nepal.",
+  alternates: { canonical: canonicalUrl("/blog") },
+  openGraph: {
+    title: "Blog | Vault Skin",
+    description:
+      "Skincare tips, product guides, and beauty insights from Vault Skin — your trusted skincare destination in Nepal.",
+    url: canonicalUrl("/blog"),
+  },
 };
 
 const BlogPage = async () => {

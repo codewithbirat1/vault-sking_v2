@@ -5,21 +5,22 @@ import { ToastProvider } from "@/components/ui/ToastProvider";
 import Providers from "./providers";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ChatwootWidget } from "@/components/ChatwootWidget";
+import { SITE_URL } from "@/lib/seo";
 
 const font = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
 });
 
-const baseUrl = "https://www.vaultskin.co";
+const baseUrl = SITE_URL;
 
 export const metadata = {
-  metadataBase: new URL("https://vaultskin.co"),
+  metadataBase: new URL(SITE_URL),
 
   title: {
     default:
-      "VaultSkin – Skincare & Beauty Products in Nepal | Quality Skincare",
-    template: "%s | VaultSkin",
+      "VaultSkin – Skincare & Beauty Products in Nepal | Vault Skin",
+    template: "%s | Vault Skin",
   },
 
   description:
@@ -53,10 +54,6 @@ export const metadata = {
   creator: "VaultSkin",
   publisher: "VaultSkin",
 
-  alternates: {
-    canonical: "/",
-  },
-
   robots: {
     index: true,
     follow: true,
@@ -70,12 +67,10 @@ export const metadata = {
   },
 
   openGraph: {
-    title: "VaultSkin – Skincare & Beauty Products in Nepal | Quality Skincare",
+    title: "VaultSkin – Skincare & Beauty Products in Nepal | Vault Skin",
 
     description:
       "Discover skincare and beauty products at VaultSkin, featuring SkinInspired and trusted brands. Shop quality sunscreen, serums, moisturizers and more in Nepal.",
-
-    url: baseUrl,
 
     siteName: "VaultSkin",
 

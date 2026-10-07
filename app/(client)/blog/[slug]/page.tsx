@@ -13,6 +13,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import React from "react";
 import type { Metadata } from "next";
+import { canonicalUrl } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -22,28 +23,23 @@ export async function generateMetadata({
   const { slug } = await params;
   const blog = await getSingleBlog(slug);
 
-  if (!blog) {
-    return { title: "Blog" };
-  }
+  if (!blog?.slug?.current || !blog.title?.trim()) notFound();
 
   const desc = getBlogDescription(blog.body ?? "", blog.title);
   const shareImageUrl = new URL(
     `/api/blog-og?slug=${encodeURIComponent(slug)}`,
     "https://vaultskin.co",
   ).toString();
-  const canonicalUrl = new URL(
-    `/blog/${slug}`,
-    "https://vaultskin.co",
-  ).toString();
+  const blogUrl = canonicalUrl(`/blog/${encodeURIComponent(blog.slug.current)}`);
 
   return {
-    title: blog.title,
+    title: { absolute: `${blog.title} | Vault Skin` },
     description: desc,
-    alternates: { canonical: canonicalUrl },
+    alternates: { canonical: blogUrl },
     openGraph: {
-      title: blog.title,
+      title: `${blog.title} | Vault Skin`,
       description: desc,
-      url: canonicalUrl,
+      url: blogUrl,
       images: [
         { url: shareImageUrl, width: 1200, height: 630, alt: blog.title },
       ],
@@ -51,7 +47,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: blog.title,
+      title: `${blog.title} | Vault Skin`,
       description: desc,
       images: [shareImageUrl],
     },

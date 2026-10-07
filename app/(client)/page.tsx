@@ -5,13 +5,21 @@ import LatestBlog from "@/components/layout/Blogs/LatestBlog";
 import Container from "@/components/Container";
 
 import { Metadata } from "next";
+import { canonicalUrl } from "@/lib/seo";
 
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Skincare & Beauty Products in Nepal",
+  title: { absolute: "Skincare & Beauty Products in Nepal | Vault Skin" },
   description:
     "Discover skincare and beauty products at VaultSkin, featuring SkinInspired and trusted brands. Shop quality sunscreen, serums, moisturizers and more in Nepal.",
+  alternates: { canonical: canonicalUrl("/") },
+  openGraph: {
+    title: "Skincare & Beauty Products in Nepal | Vault Skin",
+    description:
+      "Discover skincare and beauty products at VaultSkin, featuring SkinInspired and trusted brands. Shop quality sunscreen, serums, moisturizers and more in Nepal.",
+    url: canonicalUrl("/"),
+  },
 };
 
 const LatestBlogSkeleton = () => (

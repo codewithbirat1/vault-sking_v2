@@ -6,6 +6,7 @@ import { ArrowLeft, X, Search, RotateCcw, TrendingUp, Sparkles, ShoppingBag } fr
 import { useRouter } from "next/navigation";
 import { useSearch } from "@/hooks/useSearch";
 import { getRecentSearches, saveRecentSearches } from "@/lib/localStorage";
+import { getCategories } from "@/lib/frontend-data";
 import SearchResultCard from "./SearchResultCard";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 
@@ -17,6 +18,24 @@ type SearchDrawerProps = {
   onSubmit: (q: string) => void;
   placeholder?: string;
   panelId: string;
+};
+
+const categoryPathSlug = (category: string) => {
+  const normalize = (value: string) =>
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+
+  const categoryKey = normalize(category);
+  const match = getCategories().find((item) =>
+    [item.title, item.slug.current, item._id].some(
+      (value) => normalize(value) === categoryKey,
+    ),
+  );
+
+  return match?.slug.current ?? categoryKey;
 };
 
 export default function SearchDrawer({
@@ -175,11 +194,10 @@ export default function SearchDrawer({
             onKeyDown={handleKeyDown}
           >
             {/* Premium Mobile Search Bar */}
-            <div className="flex items-center gap-2 px-3 py-3 border-b border-border/60 bg-white shrink-0 min-h-16 shadow-sm">
-              {/* Back Button (44px target) */}
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-border/60 bg-white shrink-0 min-h-16 shadow-sm">
               <button
                 type="button"
-                aria-label="Go back"
+                aria-label="Close search"
                 className="shrink-0 p-2.5 text-text hover:bg-gray-100 rounded-full min-h-11 min-w-11 flex items-center justify-center transition-colors"
                 onClick={onClose}
               >
@@ -187,21 +205,21 @@ export default function SearchDrawer({
               </button>
 
               {/* Input Container */}
-              <div className="flex-1 relative flex items-center bg-gray-50 border border-border/80 rounded-full overflow-hidden transition-all focus-within:bg-white focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/10">
+              <div className="flex-1 min-w-0 relative flex items-center bg-gray-50 border border-border/80 rounded-full transition-all focus-within:bg-white focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/10">
                 <Search className="absolute left-3.5 h-4.5 w-4.5 text-text-muted pointer-events-none" />
                 <input
                   ref={inputRef}
-                  type="search"
+                  type="text"
                   data-search-input
                   inputMode="search"
                   enterKeyHint="search"
                   placeholder={placeholder}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  className="w-full pl-10 pr-10 py-3 text-base text-text bg-transparent focus:outline-none min-h-11"
-                  aria-label="Search inputs"
+                  className="w-full min-w-0 pl-10 pr-10 py-3 text-base text-text bg-transparent focus:outline-none min-h-11"
+                  aria-label="Search products"
                 />
-                
+
                 {/* Clear Input Button (44px target) */}
                 {hasQuery && (
                   <button
@@ -215,14 +233,6 @@ export default function SearchDrawer({
                 )}
               </div>
 
-              <button
-                type="button"
-                aria-label="Close search"
-                className="shrink-0 p-2.5 text-text-muted hover:bg-gray-100 hover:text-text rounded-full min-h-11 min-w-11 flex items-center justify-center transition-colors"
-                onClick={onClose}
-              >
-                <X size={20} />
-              </button>
             </div>
 
             {/* Suggestions & Results Panel */}
@@ -338,7 +348,9 @@ export default function SearchDrawer({
                                 type="button"
                                 onClick={() => {
                                   handleSaveSearch(cat);
-                                  router.push(`/category/${cat.toLowerCase()}`);
+                                  router.push(
+                                    `/category/${categoryPathSlug(cat)}`,
+                                  );
                                   onClose();
                                 }}
                                 className="px-3.5 py-1.5 bg-secondary/30 rounded-lg text-xs font-semibold text-primary transition-colors min-h-9"

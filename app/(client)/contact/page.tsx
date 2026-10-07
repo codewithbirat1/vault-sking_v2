@@ -205,7 +205,7 @@ export default function ContactSection() {
               <Button
                 type="submit"
                 disabled={submitted}
-                className="w-full sm:w-auto min-w-[200px] h-12 text-base font-semibold"
+                className="w-full sm:w-auto min-w-50 h-12 text-base font-semibold"
               >
                 {submitted ? (
                   <>

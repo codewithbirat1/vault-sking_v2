@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { SearchResult } from "@/types/search";
+import { isCustomerFacingLabel, SearchResult } from "@/types/search";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/config/firebase.config";
 import { Product } from "@/data/products";
@@ -15,13 +15,19 @@ type SearchIndexEntry = SearchResult & {
   tagsCompact: string[];
 };
 
+type SearchData = {
+  products: Product[];
+  categoryLabels: Map<string, string>;
+  brandLabels: Map<string, string>;
+};
+
 const PRODUCT_CACHE_TTL = 60_000;
 const SEARCH_DEBOUNCE_MS = 200;
 const MAX_SEARCH_RESULTS = 20;
 
-let cachedProducts: Product[] | null = null;
+let cachedSearchData: SearchData | null = null;
 let cachedAt = 0;
-let productRequest: Promise<Product[]> | null = null;
+let searchDataRequest: Promise<SearchData> | null = null;
 
 const normalizeSearchText = (value: string) =>
   value
@@ -33,14 +39,61 @@ const normalizeSearchText = (value: string) =>
 const compactSearchText = (value: string) =>
   normalizeSearchText(value).replace(/[^\p{L}\p{N}]/gu, "");
 
-const loadProducts = async (): Promise<Product[]> => {
-  if (cachedProducts && Date.now() - cachedAt < PRODUCT_CACHE_TTL) {
-    return cachedProducts;
+const normalizeLabel = (value: string) => value.trim().toLowerCase();
+
+const readLabelCollection = async (collectionName: string) => {
+  try {
+    const snapshot = await getDocs(collection(db, collectionName));
+    const labels = new Map<string, string>();
+
+    for (const document of snapshot.docs) {
+      const data = document.data();
+      const label =
+        typeof data.title === "string"
+          ? data.title.trim()
+          : typeof data.name === "string"
+            ? data.name.trim()
+            : typeof data.label === "string"
+              ? data.label.trim()
+              : "";
+      if (!label) continue;
+
+      const slug =
+        typeof data.slug?.current === "string" ? data.slug.current.trim() : "";
+      for (const alias of [document.id, slug, label]) {
+        if (alias) labels.set(normalizeLabel(alias), label);
+      }
+    }
+
+    return labels;
+  } catch (loadError: unknown) {
+    console.error(`Failed to load ${collectionName} labels for search`, loadError);
+    return new Map<string, string>();
+  }
+};
+
+const resolveLabel = (value: string, labels: Map<string, string>) => {
+  const trimmedValue = value.trim();
+  if (!trimmedValue) return "";
+
+  return (
+    labels.get(normalizeLabel(trimmedValue)) ??
+    (isCustomerFacingLabel(trimmedValue) ? trimmedValue : "")
+  );
+};
+
+const loadSearchData = async (): Promise<SearchData> => {
+  if (cachedSearchData && Date.now() - cachedAt < PRODUCT_CACHE_TTL) {
+    return cachedSearchData;
   }
 
-  if (!productRequest) {
-    productRequest = getDocs(collection(db, "products"))
-      .then((snapshot) => {
+  if (!searchDataRequest) {
+    searchDataRequest = Promise.all([
+      getDocs(collection(db, "products")),
+      readLabelCollection("categories"),
+      readLabelCollection("brands"),
+    ])
+      .then(([snapshot, categoryLabels, brandLabels]) => {
         const products = snapshot.docs.map(
           (document) =>
             ({
@@ -48,16 +101,17 @@ const loadProducts = async (): Promise<Product[]> => {
               _id: document.id,
             }) as Product,
         );
-        cachedProducts = products;
+        const data = { products, categoryLabels, brandLabels };
+        cachedSearchData = data;
         cachedAt = Date.now();
-        return products;
+        return data;
       })
       .finally(() => {
-        productRequest = null;
+        searchDataRequest = null;
       });
   }
 
-  return productRequest;
+  return searchDataRequest;
 };
 
 export function useSearch(query: string) {
@@ -65,6 +119,12 @@ export function useSearch(query: string) {
   const [error, setError] = useState<string | null>(null);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [categoryLabels, setCategoryLabels] = useState<Map<string, string>>(
+    () => new Map(),
+  );
+  const [brandLabels, setBrandLabels] = useState<Map<string, string>>(
+    () => new Map(),
+  );
   const [productsLoaded, setProductsLoaded] = useState(false);
   const [productsError, setProductsError] = useState<string | null>(null);
   const [processedQuery, setProcessedQuery] = useState("");
@@ -76,10 +136,24 @@ export function useSearch(query: string) {
   useEffect(() => {
     let isCurrent = true;
 
-    loadProducts()
-      .then((products) => {
+    loadSearchData()
+      .then(({ products, categoryLabels: loadedCategories, brandLabels: loadedBrands }) => {
         if (!isCurrent) return;
-        setAllProducts(products);
+        const customerFacingProducts = products.filter(
+          (product) =>
+            isCustomerFacingLabel(product.name, product._id) &&
+            typeof product.slug?.current === "string" &&
+            product.slug.current.length > 0,
+        );
+        setCategoryLabels(loadedCategories);
+        setBrandLabels(loadedBrands);
+        setAllProducts(
+          customerFacingProducts.map((product) => ({
+            ...product,
+            category: resolveLabel(product.category ?? "", loadedCategories),
+            brand: resolveLabel(product.brand ?? "", loadedBrands),
+          })),
+        );
         setProductsLoaded(true);
       })
       .catch((loadError: unknown) => {
@@ -98,8 +172,8 @@ export function useSearch(query: string) {
     const searchData: SearchIndexEntry[] = allProducts.map((product) => {
       const name = product.name ?? "";
       const slug = product.slug?.current ?? "";
-      const brand = product.brand ?? "";
-      const category = product.category ?? "";
+      const brand = resolveLabel(product.brand ?? "", brandLabels);
+      const category = resolveLabel(product.category ?? "", categoryLabels);
       const tags = product.tags ?? [];
 
       return {
@@ -152,7 +226,7 @@ export function useSearch(query: string) {
       useTokenSearch: true,
       tokenMatch: "all",
     });
-  }, [allProducts]);
+  }, [allProducts, brandLabels, categoryLabels]);
 
   useEffect(() => {
     if (!searchTerm) {

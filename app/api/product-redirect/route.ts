@@ -9,7 +9,10 @@ export async function GET(req: Request) {
   const id = searchParams.get("id");
 
   if (!id) {
-    return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.json(
+      { error: "Product ID is required." },
+      { status: 400 },
+    );
   }
 
   try {
@@ -21,13 +24,18 @@ export async function GET(req: Request) {
       const slug = data?.slug?.current;
       
       if (slug) {
-        return NextResponse.redirect(new URL(`/product/${slug}?review=true`, req.url));
+        return NextResponse.redirect(
+          new URL(`/product/${encodeURIComponent(slug)}`, req.url),
+        );
       }
     }
   } catch (error) {
     console.error("Failed to redirect to product:", error);
+    return NextResponse.json(
+      { error: "Unable to look up the requested product." },
+      { status: 500 },
+    );
   }
 
-  // Fallback if product or slug not found
-  return NextResponse.redirect(new URL("/", req.url));
+  return NextResponse.json({ error: "Product not found." }, { status: 404 });
 }

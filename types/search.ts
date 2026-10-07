@@ -28,7 +28,10 @@ export function isCustomerFacingLabel(
   const label = value?.trim();
   if (!label || label === productId) return false;
 
-  return !/^[A-Za-z0-9_-]{16,}$/.test(label);
+  return (
+    !/^[A-Za-z0-9_-]{16,}$/.test(label) &&
+    !/^(?:cat(?:egory)?|brand|product|prod|item)[_-]?\d+$/i.test(label)
+  );
 }
 
 /**
